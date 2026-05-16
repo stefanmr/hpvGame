@@ -179,14 +179,18 @@ function pickHcpChoice(idx){
   if(imp.will)S.will=clamp(S.will+imp.will);
   const dt=S.trust-prevT,dw=S.will-prevW;
 
-  document.querySelectorAll(`#hcp-step-${S.hcpStepIdx} .choice`).forEach((b,i)=>{
-    b.disabled=true;
-    if(i===idx)b.classList.add("sel",q)
-  });
+  const clickedBtn=document.querySelector(`#hcp-step-${S.hcpStepIdx} .choice[onclick="pickHcpChoice(${idx})"]`);
+  if(q==="bad"){
+    if(clickedBtn){clickedBtn.disabled=true;clickedBtn.classList.add("sel","bad")}
+  }else{
+    document.querySelectorAll(`#hcp-step-${S.hcpStepIdx} .choice`).forEach(b=>b.disabled=true);
+    if(clickedBtn)clickedBtn.classList.add("sel",q);
+  }
 
-  const lblMap={good:"Odlično",neutral:"Funkcionalno",bad:"Rizično"};
-  const fLbl=step.t==="root"?(opt.ok?"Tačno":"Nije tačno"):lblMap[opt.q];
-  document.getElementById("hcpFb").innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div><div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`;
+  const lblMap={good:"Odlično",neutral:"Funkcionalno",bad:"Rizično — pokušajte drugi odgovor"};
+  const fLbl=step.t==="root"?(opt.ok?"Tačno":"Nije tačno — pokušajte ponovo"):lblMap[opt.q];
+  const nextBtn=q!=="bad"?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
+  document.getElementById("hcpFb").innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
   renderHcpMeters(1,dt,dw);
   setTimeout(()=>{const fb=document.getElementById("hcpFb");if(fb)fb.scrollIntoView({behavior:"smooth",block:"center"})},150);
   saveState()
