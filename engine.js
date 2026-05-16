@@ -56,6 +56,7 @@ function updateCrumb(id){
    ════════════════════════════════════════════════════ */
 function enterGame(g){
   S.game=g;
+  track("game_enter",{game:g});
   if(g==="hcp"){
     if(!S.hcpProfile)showHcpProfiles();
     else showScreen("hcp-pick"),renderHcpScenarios();
@@ -74,6 +75,7 @@ function showHcpProfiles(){
 
 function pickHcp(id){
   S.hcpProfile=id;
+  track("hcp_profile_pick",{profile:id});
   saveState();
   showScreen("hcp-pick");
   renderHcpScenarios()
@@ -104,6 +106,11 @@ function startHcpScenario(idx){
   S.hcpScenarioIdx=idx;
   S.hcpStepIdx=0;
   S.trust=50;S.will=30;
+  track("hcp_scenario_start",{
+    scenarioIdx:idx,
+    title:HCP_SCENARIOS[idx].title,
+    profile:S.hcpProfile
+  });
   showScreen("hcp-game");
   renderHcpPips();
   renderHcpMeters(0);
@@ -192,6 +199,16 @@ function pickHcpChoice(idx,btn){
   const nextBtn=q!=="bad"?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
   document.getElementById(`hcpFb-${S.hcpStepIdx}`).innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
   renderHcpMeters(1,dt,dw);
+  track("hcp_choice",{
+    scenarioIdx:S.hcpScenarioIdx,
+    stepIdx:S.hcpStepIdx,
+    stepType:step.t,
+    optionIdx:idx,
+    optionText:_short(opt.x,140),
+    quality:q,
+    trust:S.trust,will:S.will,
+    dTrust:dt,dWill:dw
+  });
   setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
   saveState()
 }
@@ -204,13 +221,20 @@ function nextHcpStep(){
 
 function finishHcpScenario(){
   const sc=HCP_SCENARIOS[S.hcpScenarioIdx];
-  let ending,tone;
-  if(S.trust>=70){ending=sc.eGood;tone="Roditelj odlazi sa otvorenim umom."}
-  else if(S.trust>=40){ending=sc.eMid;tone="Roditelj nije ubeđen, ali nije ni zatvoren."}
-  else{ending=sc.eBad;tone="Razgovor je zatvoren — odlazi sa istom pozicijom."}
+  let ending,tone,outcome;
+  if(S.trust>=70){ending=sc.eGood;tone="Roditelj odlazi sa otvorenim umom.";outcome="good"}
+  else if(S.trust>=40){ending=sc.eMid;tone="Roditelj nije ubeđen, ali nije ni zatvoren.";outcome="mid"}
+  else{ending=sc.eBad;tone="Razgovor je zatvoren — odlazi sa istom pozicijom.";outcome="bad"}
 
   S.hcpResults.push({title:sc.title,finalTrust:Math.round(S.trust),finalWill:Math.round(S.will)});
   if(!S.hcpCompletedScenarios.includes(S.hcpScenarioIdx))S.hcpCompletedScenarios.push(S.hcpScenarioIdx);
+
+  track("hcp_scenario_end",{
+    scenarioIdx:S.hcpScenarioIdx,
+    outcome:outcome,
+    trust:Math.round(S.trust),
+    will:Math.round(S.will)
+  });
 
   const wrap=document.getElementById("hcpStepWrap");
   const div=document.createElement("div");
@@ -261,6 +285,11 @@ function startPersona(idx){
   S.sas=p.start.sas;
   S.otv=p.start.otv;
   S.odluka=p.start.dec!=null?p.start.dec:20;
+  track("parent_persona_start",{
+    personaIdx:idx,
+    name:p.name,
+    start:{anks:S.anks,sas:S.sas,otv:S.otv,odluka:S.odluka}
+  });
   showScreen("parent-game");
   renderPParentMeters(0);
   document.getElementById("pPersonaLbl").innerHTML=`Lik · <strong>${p.name}</strong>`;
@@ -381,6 +410,19 @@ function pickPChoice(idx){
   document.getElementById("pFb").innerHTML=`<div class="fb"><div class="fb-lbl" style="color:var(--coral)">U tebi se događa</div><div class="fb-text"><em>${c.re}</em></div></div><div class="next-wrap"><button class="btn btn-coral" onclick="nextPScene()">${S.pSceneIdx<p.scenes.length-1?'Sledeća scena':'Izlazak iz ordinacije'} <span class="arrow">→</span></button></div>`;
 
   renderPParentMeters(1,S.anks-prevA,S.sas-prevS,S.otv-prevO,S.odluka-prevD);
+  track("parent_choice",{
+    personaIdx:S.personaIdx,
+    sceneIdx:S.pSceneIdx,
+    sceneTitle:_short(scene.title,80),
+    choiceIdx:idx,
+    em:_short(c.em,60),
+    inner:_short(c.in,140),
+    imp:c.imp||{},
+    unlock:c.unlock||null,
+    endTrigger:c.end||null,
+    anks:S.anks,sas:S.sas,otv:S.otv,odluka:S.odluka,
+    dAnks:S.anks-prevA,dSas:S.sas-prevS,dOtv:S.otv-prevO,dOdluka:S.odluka-prevD
+  });
   setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
   saveState()
 }
@@ -404,6 +446,13 @@ function showPEnding(){
   document.getElementById("pSceneHint").textContent="Kraj";
   S.pSceneIdx=p.scenes.length;
   renderPPips();
+  track("parent_ending_shown",{
+    personaIdx:S.personaIdx,
+    ending:endingKey,
+    anks:S.anks,sas:S.sas,otv:S.otv,odluka:S.odluka,
+    path:[...S.pPath],
+    nChoices:S.pChoices.length
+  });
 
   document.getElementById("pCard").innerHTML=`<div class="end-card fade-in"><div class="end-eb">Posle razgovora</div><div class="scene-narr" style="margin-bottom:24px">${e.phone}</div><div style="margin-bottom:8px;font-size:14px;color:var(--ink-muted);letter-spacing:.04em;text-transform:uppercase;font-weight:500">Šta joj/mu kažeš?</div><div class="choices">${e.opts.map((o,i)=>`<button class="choice-f" onclick="finishPGame(${i})"><div class="feel-em">${o}</div></button>`).join("")}</div></div>`;
   scrollToCard();
@@ -414,6 +463,13 @@ function finishPGame(selectedIdx){
   const p=PERSONAS[S.personaIdx];
   const endingKey=S.pEnding||'closed';
   const e=p.endings[endingKey];
+
+  track("parent_final_reflection",{
+    personaIdx:S.personaIdx,
+    ending:endingKey,
+    optionIdx:selectedIdx,
+    optionText:_short(e.opts[selectedIdx],140)
+  });
 
   document.querySelectorAll(".choice-f").forEach((b,i)=>{
     b.disabled=true;

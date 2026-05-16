@@ -15,6 +15,7 @@ Interaktivna edukativna igra za zdravstvene radnike — vežbanje empatičke kom
 | `_TEMPLATE_persona.js` | ✅ kopirati | Šablon za novu personu sa komentarima |
 | `validate.html` | ne | Alat za proveru ispravnosti personas.js |
 | `engine.js` | ne | Logika igre, state, render |
+| `analytics.js` | konfiguracija | Anonimno beleženje izbora (Supabase) |
 | `styles.css` | ne | CSS |
 | `index.html` | ne | HTML struktura |
 
@@ -76,6 +77,14 @@ Ending se određuje po finalnom `trust`: ≥ 70 → `eGood`, 40–69 → `eMid`,
 - **Adaptivni odabir sledećeg scenarija** — po ostvarenom finalnom trust-u predloži scenario koji adresira isti attitude root ali iz druge perspektive.
 - **Mid-game debrief** — posle svake sesije prikaži koje attitude roots je igrac konzistentno pogrešno identifikovao.
 - **Unlock-based grananje između scena u HCP igri** — analogno `req`/`unlock` mehanizmu u parent igri; lekar dobija drugačiji tok razgovora zavisno od ranog izbora.
+
+## Analitika radionica
+
+Igra anonimno beleži izbore u Supabase bazu radi istraživanja efikasnosti vežbe. Svaki klik se loguje sa `session_id`-jem (UUID u `localStorage`, anoniman, bez ličnih podataka) i opcionim `workshop_id`-jem iz URL parametra `?w=...`.
+
+Saglasnost je prikazana u uvodnom ekranu sa opt-out linkom. Ako korisnik klikne odustajanje, šalje se marker `consent_revoked` i `track()` postaje no-op za tu sesiju i sve buduće.
+
+Konfiguracija (URL projekta + publishable key) ide u `analytics.js`. Anon ima samo `insert` pravo na `events` tabelu; čitanje je iza Supabase autentikacije (RLS politika).
 
 ## Reference
 
