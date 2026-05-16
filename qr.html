@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR generator · Od nedoumice do odluke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300..700;9..144,1,300..600&family=DM+Sans:opsz,wght@9..40,300..700&display=swap&subset=latin-ext" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .qr-layout{display:grid;grid-template-columns:minmax(280px,400px) 1fr;gap:32px;margin-top:20px}
+  @media(max-width:780px){.qr-layout{grid-template-columns:1fr}}
+  .qr-form label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);margin:14px 0 4px;font-weight:500}
+  .qr-form input{display:block;width:100%;padding:10px 12px;border:1px solid var(--border);font-family:inherit;font-size:15px;background:var(--paper);box-sizing:border-box;color:var(--ink)}
+  .qr-form .hint{font-size:12px;color:var(--ink-muted);margin-top:4px;line-height:1.4;font-style:italic}
+  .url-box{background:var(--cream-warm);padding:14px 16px;border-left:3px solid var(--teal);margin-top:18px;word-break:break-all;font-family:'DM Sans',monospace;font-size:13px;line-height:1.45;color:var(--ink-soft)}
+  .url-box strong{color:var(--teal);font-weight:600}
+  .actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .actions button{padding:10px 14px;font-family:inherit;font-size:14px;border:none;cursor:pointer;color:var(--paper);background:var(--teal)}
+  .actions button:hover{background:var(--teal-deep)}
+  .actions button.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--border)}
+  .qr-output{text-align:center;background:var(--paper);padding:30px;border:1px solid var(--border)}
+  .qr-output canvas{max-width:100%;height:auto;display:block;margin:0 auto}
+  .qr-title{font-family:'Fraunces',serif;font-style:italic;color:var(--coral);font-size:14px;margin-bottom:6px;letter-spacing:.04em}
+  .qr-subtitle{font-family:'Fraunces',serif;font-size:22px;color:var(--teal-deep);font-weight:500;margin-bottom:18px;line-height:1.2}
+  .qr-foot{font-size:12px;color:var(--ink-muted);margin-top:18px;letter-spacing:.05em}
+  @media print{
+    .brand,.crumb,.qr-form,.actions,.note,.cite,header{display:none!important}
+    .qr-layout{grid-template-columns:1fr;gap:0}
+    .qr-output{border:none;padding:0}
+    body{background:white}
+    .container{max-width:none;padding:0}
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<header class="brand">
+  <div class="brand-mark"><a href="index.html" style="color:inherit;text-decoration:none">Od nedoumice <span>do odluke</span></a></div>
+  <div class="brand-meta">QR generator</div>
+</header>
+
+<div class="qr-layout">
+
+  <section class="qr-form">
+    <h2 style="font-family:'Fraunces',serif;font-size:24px;color:var(--teal-deep);font-weight:500">Generiši QR za radionicu</h2>
+    <p style="font-size:14px;color:var(--ink-soft);margin-top:8px;line-height:1.5">Polaznici skeniraju kod, dolaze na istu igru, ali im se sesije grupišu pod istim <code>workshop_id</code>-jem — tako u <a href="stats.html" style="color:var(--coral)">Statistici</a> filtriraš samo ovu radionicu.</p>
+
+    <label for="base">Bazni URL</label>
+    <input id="base" type="url" placeholder="https://username.github.io/hpvGame/">
+    <div class="hint">Adresa gde je igra hostovana. Auto-detektuje se iz trenutne adrese.</div>
+
+    <label for="wid">Workshop ID</label>
+    <input id="wid" type="text" placeholder="novi-sad-2026-05" autocomplete="off">
+    <div class="hint">Slug za URL. Predlog: <code>grad-godina-mesec</code>, sve malim slovima, bez razmaka. Npr. <code>novi-sad-2026-05</code>, <code>kme-beograd-2026-juni</code>.</div>
+
+    <label for="title">Naslov za štampu (opciono)</label>
+    <input id="title" type="text" placeholder="KME · Novi Sad · maj 2026">
+    <div class="hint">Prikazuje se iznad QR koda pri štampi.</div>
+
+    <div class="url-box" id="urlBox"><strong>URL:</strong> <span id="urlText">—</span></div>
+
+    <div class="actions">
+      <button onclick="copyUrl()">Kopiraj URL</button>
+      <button onclick="download()">Preuzmi PNG</button>
+      <button class="ghost" onclick="window.print()">Štampaj</button>
+    </div>
+  </section>
+
+  <section class="qr-output" id="output">
+    <div class="qr-title" id="outTitle" style="display:none">Skeniraj — vežba</div>
+    <div class="qr-subtitle" id="outSubtitle" style="display:none"></div>
+    <canvas id="canvas"></canvas>
+    <div class="qr-foot" id="outFoot">Od nedoumice do odluke · interaktivna vežba</div>
+  </section>
+
+</div>
+
+</div>
+
+<script type="module">
+import QRCode from "https://esm.sh/qrcode@1.5.4";
+
+const baseEl = document.getElementById("base");
+const widEl  = document.getElementById("wid");
+const titleEl = document.getElementById("title");
+const urlText = document.getElementById("urlText");
+const canvas = document.getElementById("canvas");
+const outTitle = document.getElementById("outTitle");
+const outSubtitle = document.getElementById("outSubtitle");
+
+// Auto-derive base URL from current location
+function deriveBase() {
+  const u = new URL(location.href);
+  u.search = "";
+  u.hash = "";
+  let path = u.pathname;
+  // remove last segment if it ends in .html, else keep trailing slash
+  path = path.replace(/[^/]+\.html$/, "");
+  if (!path.endsWith("/")) path += "/";
+  u.pathname = path;
+  return u.toString();
+}
+baseEl.value = deriveBase();
+
+function buildUrl() {
+  const base = baseEl.value.trim().replace(/\/$/, "");
+  const wid = (widEl.value || "").trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+  if (!base) return "";
+  if (!wid) return base + "/index.html";
+  return `${base}/index.html?w=${wid}`;
+}
+
+async function render() {
+  const url = buildUrl();
+  if (!url) {
+    urlText.textContent = "—";
+    canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    return;
+  }
+  urlText.textContent = url;
+  await QRCode.toCanvas(canvas, url, {
+    width: 480,
+    margin: 2,
+    color: { dark: "#143432", light: "#fbf7ef" },
+    errorCorrectionLevel: "M"
+  });
+  // Print header
+  const t = titleEl.value.trim();
+  if (t) {
+    outSubtitle.textContent = t;
+    outTitle.style.display = "block";
+    outSubtitle.style.display = "block";
+  } else {
+    outTitle.style.display = "none";
+    outSubtitle.style.display = "none";
+  }
+}
+
+window.copyUrl = async () => {
+  const url = buildUrl();
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    flash("Kopirano u clipboard");
+  } catch (e) {
+    flash("Kopiranje neuspešno: " + e.message);
+  }
+};
+
+window.download = () => {
+  const wid = widEl.value.trim() || "qr";
+  const link = document.createElement("a");
+  link.download = `hpv-${wid}.png`;
+  link.href = canvas.toDataURL("image/png");
+  link.click();
+};
+
+function flash(msg) {
+  const old = document.getElementById("__flash");
+  if (old) old.remove();
+  const div = document.createElement("div");
+  div.id = "__flash";
+  div.textContent = msg;
+  div.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--teal);color:var(--paper);padding:10px 18px;font-size:14px;z-index:100;border-radius:2px;box-shadow:var(--shadow)";
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 2000);
+}
+
+baseEl.addEventListener("input", render);
+widEl.addEventListener("input", render);
+titleEl.addEventListener("input", render);
+render();
+</script>
+</body>
+</html>
