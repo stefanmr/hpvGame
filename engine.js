@@ -161,7 +161,7 @@ function renderHcpStep(){
   div.className="fade-in";
   div.id=`hcp-step-${S.hcpStepIdx}`;
   const shuffledOpts=shuffle(step.o.map((opt,i)=>({...opt,_i:i})));
-  div.innerHTML=`<div class="step-eb"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${labels[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${shuffledOpts.map(opt=>`<button class="choice" onclick="pickHcpChoice(${opt._i})">${opt.x}</button>`).join("")}</div><div id="hcpFb"></div>`;
+  div.innerHTML=`<div class="step-eb"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${labels[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${shuffledOpts.map(opt=>`<button class="choice" onclick="pickHcpChoice(${opt._i})">${opt.x}</button>`).join("")}</div><div id="hcpFb-${S.hcpStepIdx}"></div>`;
   wrap.appendChild(div);
   setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),60)
 }
@@ -190,7 +190,7 @@ function pickHcpChoice(idx){
   const lblMap={good:"Odlično",neutral:"Funkcionalno",bad:"Rizično — pokušajte drugi odgovor"};
   const fLbl=step.t==="root"?(opt.ok?"Tačno":"Nije tačno — pokušajte ponovo"):lblMap[opt.q];
   const nextBtn=q!=="bad"?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
-  document.getElementById("hcpFb").innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
+  document.getElementById(`hcpFb-${S.hcpStepIdx}`).innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
   renderHcpMeters(1,dt,dw);
   setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
   saveState()
