@@ -192,7 +192,7 @@ function pickHcpChoice(idx){
   const nextBtn=q!=="bad"?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
   document.getElementById("hcpFb").innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
   renderHcpMeters(1,dt,dw);
-  setTimeout(()=>{const fb=document.getElementById("hcpFb");if(fb)fb.scrollIntoView({behavior:"smooth",block:"center"})},150);
+  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
   saveState()
 }
 
@@ -371,7 +371,7 @@ function pickPChoice(idx){
   document.getElementById("pFb").innerHTML=`<div class="fb"><div class="fb-lbl" style="color:var(--coral)">U tebi se događa</div><div class="fb-text"><em>${c.re}</em></div></div><div class="next-wrap"><button class="btn btn-coral" onclick="nextPScene()">${S.pSceneIdx<p.scenes.length-1?'Sledeća scena':'Izlazak iz ordinacije'} <span class="arrow">→</span></button></div>`;
 
   renderPParentMeters(1,S.anks-prevA,S.sas-prevS,S.otv-prevO,S.odluka-prevD);
-  setTimeout(()=>{const fb=document.getElementById("pFb");if(fb)fb.scrollIntoView({behavior:"smooth",block:"center"})},150);
+  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
   saveState()
 }
 
