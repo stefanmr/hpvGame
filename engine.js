@@ -306,10 +306,18 @@ function renderPersonaIntro(){
   document.getElementById("pCard").innerHTML=`<div class="intro-card fade-in"><div class="intro-eb">Lik ${String(S.personaIdx+1).padStart(2,'0')}</div><h2 class="intro-name">${p.name}</h2><div class="intro-tag">«${p.tag}»</div><div class="intro-text">${p.intro.map(par=>'<p>'+par+'</p>').join("")}</div><div class="intro-state"><strong>Tvoje stanje sad:</strong> Anksioznost ${p.start.anks} · Saslušanost ${p.start.sas} · Otvorenost ${p.start.otv} · Prihvatanje vakcinacije ${p.start.dec!=null?p.start.dec:20}<br><small style="color:var(--ink-muted)">Tvoji izbori menjaju ove mere. Cilj nije «pobeda» — već iskreni odgovor onome šta lik oseća.</small></div><div class="next-wrap"><button class="btn btn-coral" onclick="startPScene(0)">Ulazak u ordinaciju <span class="arrow">→</span></button></div></div>`
 }
 
+function scrollToCard(){
+  const el=document.getElementById("pCard");
+  const side=document.querySelector(".game-side");
+  const offset=side&&window.innerWidth<=820?side.offsetHeight+4:0;
+  window.scrollTo({top:Math.max(0,el.getBoundingClientRect().top+window.scrollY-offset),behavior:"smooth"});
+}
+
 function startPScene(idx){
   S.pSceneIdx=idx;
   renderPScene();
-  saveState()
+  saveState();
+  setTimeout(scrollToCard,60)
 }
 
 function getDocLine(scene){
@@ -381,7 +389,7 @@ function nextPScene(){
     S.pSceneIdx++;
     renderPScene();
     saveState();
-    setTimeout(()=>document.getElementById("pCard").scrollIntoView({behavior:"smooth",block:"start"}),60)
+    setTimeout(scrollToCard,60)
   }else{
     showPEnding()
   }
@@ -396,7 +404,7 @@ function showPEnding(){
   renderPPips();
 
   document.getElementById("pCard").innerHTML=`<div class="end-card fade-in"><div class="end-eb">Posle razgovora</div><div class="scene-narr" style="margin-bottom:24px">${e.phone}</div><div style="margin-bottom:8px;font-size:14px;color:var(--ink-muted);letter-spacing:.04em;text-transform:uppercase;font-weight:500">Šta joj/mu kažeš?</div><div class="choices">${e.opts.map((o,i)=>`<button class="choice-f" onclick="finishPGame(${i})"><div class="feel-em">${o}</div></button>`).join("")}</div></div>`;
-  setTimeout(()=>document.getElementById("pCard").scrollIntoView({behavior:"smooth",block:"start"}),60);
+  setTimeout(scrollToCard,60);
   saveState()
 }
 
