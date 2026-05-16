@@ -1,149 +1,12 @@
-<!DOCTYPE html>
-<html lang="sr-Latn">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Od nedoumice do odluke — interaktivna vežba</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300..700;9..144,1,300..600&family=DM+Sans:opsz,wght@9..40,300..700&display=swap&subset=latin-ext" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
-</head>
-<body>
+/* ════════════════════════════════════════════════════
+   engine.js — logika igre, state, render funkcije
 
-<div class="container">
+   Ovaj fajl se ne edituje u radu dan-za-dan.
+   Sav sadržaj (tekst, scenariji, persone) ide u:
+     scenarios.js  — Igra 01 (HCP)
+     personas.js   — Igra 02 (Roditelj)
+   ════════════════════════════════════════════════════ */
 
-<header class="brand">
-  <div class="brand-mark" onclick="goHome()">Od nedoumice <span>do odluke</span></div>
-  <div class="brand-meta">interaktivna vežba · v2</div>
-</header>
-
-<div id="crumb" class="crumb hidden"></div>
-
-<!-- ─────────────── SCREEN: ROLE ─────────────── -->
-<section id="s-role" class="fade-in">
-  <div class="eyebrow">Dve perspektive · jedna tema</div>
-  <h1 class="title">U <em>čijim</em><br>cipelama danas?</h1>
-  <p class="lead">Vakcinacija nije monolog. Dve igre, dva pogleda. Jedna kroz oči lekara koji pokušava da pomogne, druga kroz oči roditelja koji okleva. Razumevanje obe strane je preduslov dobre prakse.</p>
-
-  <div class="role-grid">
-    <button class="role-card" onclick="enterGame('hcp')">
-      <div class="role-card-tag">Igra 01</div>
-      <div class="role-card-title">Razgovor sa<br><em>roditeljem</em></div>
-      <div class="role-card-desc">Vi ste lekar. Pred vama je roditelj sa konkretnom brigom. Prepoznajte koren stava, vežbajte empatičke odgovore. Osam scenarija na izbor.</div>
-      <div class="role-card-meta">~15 min · uloga: lekar</div>
-      <span class="role-card-cta">Krenite kao lekar <span class="arrow">→</span></span>
-    </button>
-
-    <button class="role-card parent" onclick="enterGame('parent')">
-      <div class="role-card-tag">Igra 02</div>
-      <div class="role-card-title">U <em>cipelama</em><br>roditelja</div>
-      <div class="role-card-desc">Postanite roditelj koji okleva. Osetite šta znači biti ranjiv u ordinaciji. Birajte šta osećate, ne šta govorite. Osam likova na izbor.</div>
-      <div class="role-card-meta">~10 min · uloga: roditelj</div>
-      <span class="role-card-cta">Krenite kao roditelj <span class="arrow">→</span></span>
-    </button>
-  </div>
-
-  <div class="note" style="margin-top:24px"><strong>Za grupe:</strong> Igrate samostalno ili u parovima. Predlog — 1–2 scenarija ili lika po sesiji, ostavite vremena za razgovor među sobom posle svakog. Sve odluke se čuvaju u brauzeru, možete pauzirati.</div>
-</section>
-
-<!-- ─────────────── SCREEN: HCP PROFILE ─────────────── -->
-<section id="s-hcp-profile" class="hidden">
-  <div class="eyebrow">Igra 01 · Razgovor sa roditeljem</div>
-  <h2 class="title">Koja je vaša uloga<br>u zdravstvenom sistemu?</h2>
-  <p class="lead">Vaš profil daje kontekst razgovoru — kako vas roditelj doživljava i šta podrazumevate o porodici. Mehanika scenarija ostaje ista.</p>
-  <div class="profile-grid" id="hcpProfiles"></div>
-</section>
-
-<!-- ─────────────── SCREEN: HCP SCENARIO PICK ─────────────── -->
-<section id="s-hcp-pick" class="hidden">
-  <div class="eyebrow">Izaberite scenario</div>
-  <h2 class="title">Pred vama je roditelj.<br>Koji danas?</h2>
-  <p class="lead">Osam različitih briga, osam različitih psiholoških korenova. Posle završenog razgovora možete birati drugi — ili završiti sesiju.</p>
-  <div class="profile-grid" id="hcpScenarios" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"></div>
-  <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
-    <button class="btn btn-ghost" id="hcpFinish" onclick="showHcpSummary()" style="display:none">Završi sesiju i vidi rezultate</button>
-  </div>
-</section>
-
-<!-- ─────────────── SCREEN: HCP GAME ─────────────── -->
-<section id="s-hcp-game" class="hidden">
-  <div class="bar-wrap">
-    <div class="bar-info"><div class="bar-lbl" id="hcpScnLbl">Scenario · <strong>—</strong></div><div class="bar-step" id="hcpStepHint">Razgovor počinje...</div></div>
-    <div class="pips" id="hcpPips"></div>
-  </div>
-  <div class="game-layout">
-    <aside class="game-side">
-      <div class="side-meters">
-        <div class="side-meters-hd">Stanje roditelja</div>
-        <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Poverenje</span><span class="meter-v-val"><span id="trustVal">50</span><span class="delta" id="trustDel"></span></span></div>
-          <div class="meter-v-track"><div class="fill trust" id="trustFill" style="width:50%"></div></div>
-        </div>
-        <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Spremnost za vakcinu</span><span class="meter-v-val"><span id="willVal">30</span><span class="delta" id="willDel"></span></span></div>
-          <div class="meter-v-track"><div class="fill will" id="willFill" style="width:30%"></div></div>
-        </div>
-      </div>
-    </aside>
-    <div class="game-main">
-      <div class="card" id="hcpCard"></div>
-    </div>
-  </div>
-</section>
-
-<!-- ─────────────── SCREEN: HCP SUMMARY ─────────────── -->
-<section id="s-hcp-summary" class="hidden"></section>
-
-<!-- ─────────────── SCREEN: PARENT PERSONA PICK ─────────────── -->
-<section id="s-parent-pick" class="hidden">
-  <div class="eyebrow">Igra 02 · U cipelama roditelja</div>
-  <h2 class="title">Ko ste vi <em>danas</em>?</h2>
-  <p class="lead">Niste lekar. Niste posmatrač. Postaćete neko ko sutra ide na pregled sa nedoumicom u stomaku. Birajte lik koji vam je najmanje sličan — najviše ćete naučiti.</p>
-  <div class="persona-grid" id="personas"></div>
-  <div class="note"><strong>Napomena:</strong> Ovo nije test ispravnih odgovora. Svaki izbor je pokušaj da budete iskreni prema osećaju lika. Nema „pobeđujem" — postoji samo iskustvo.</div>
-</section>
-
-<!-- ─────────────── SCREEN: PARENT GAME ─────────────── -->
-<section id="s-parent-game" class="hidden">
-  <div class="bar-wrap">
-    <div class="bar-info"><div class="bar-lbl" id="pPersonaLbl">—</div><div class="bar-step" id="pSceneHint">Scena 1/4</div></div>
-    <div class="pips" id="pPips"></div>
-  </div>
-  <div class="game-layout">
-    <aside class="game-side">
-      <div class="side-meters">
-        <div class="side-meters-hd">Tvoje stanje</div>
-        <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Anksioznost</span><span class="meter-v-val"><span id="anksVal">50</span><span class="delta" id="anksDel"></span></span></div>
-          <div class="meter-v-track"><div class="fill anks" id="anksFill" style="width:50%"></div></div>
-        </div>
-        <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Saslušano</span><span class="meter-v-val"><span id="sasVal">0</span><span class="delta" id="sasDel"></span></span></div>
-          <div class="meter-v-track"><div class="fill sas" id="sasFill" style="width:0%"></div></div>
-        </div>
-        <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Otvorenost</span><span class="meter-v-val"><span id="otvVal">15</span><span class="delta" id="otvDel"></span></span></div>
-          <div class="meter-v-track"><div class="fill otv" id="otvFill" style="width:15%"></div></div>
-        </div>
-        <div class="meter-v meter-v-key">
-          <div class="meter-v-top"><span class="meter-v-lbl">Odluka</span><span class="meter-v-val"><span id="decVal">20</span><span class="delta" id="decDel"></span></span></div>
-          <div class="meter-v-track"><div class="fill dec" id="decFill" style="width:20%"></div></div>
-          <div class="meter-v-anno"><span>protiv vakcinacije</span><span>za vakcinaciju</span></div>
-        </div>
-      </div>
-    </aside>
-    <div class="game-main">
-      <div id="pCard"></div>
-    </div>
-  </div>
-</section>
-
-</div>
-
-<script src="scenarios.js"></script>
-<script src="personas.js"></script>
-<script>
 /* ════════════════════════════════════════════════════
    STATE
    ════════════════════════════════════════════════════ */
@@ -307,17 +170,17 @@ function pickHcpChoice(idx){
   let imp,q;
   if(step.t==="root"){imp=opt.ok?HCP_IMPACT.root.correct:HCP_IMPACT.root.incorrect;q=opt.ok?"good":"bad";if(opt.ok)S.totalRoots++}
   else{imp=HCP_IMPACT[step.t][opt.q];q=opt.q;if(opt.q==="good")S.totalGood++}
-  
+
   const prevT=S.trust,prevW=S.will;
   if(imp.trust)S.trust=clamp(S.trust+imp.trust);
   if(imp.will)S.will=clamp(S.will+imp.will);
   const dt=S.trust-prevT,dw=S.will-prevW;
-  
+
   document.querySelectorAll(`#hcp-step-${S.hcpStepIdx} .choice`).forEach((b,i)=>{
     b.disabled=true;
     if(i===idx)b.classList.add("sel",q)
   });
-  
+
   const lblMap={good:"Odlično",neutral:"Funkcionalno",bad:"Rizično"};
   const fLbl=step.t==="root"?(opt.ok?"Tačno":"Nije tačno"):lblMap[opt.q];
   document.getElementById("hcpFb").innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div><div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`;
@@ -338,10 +201,10 @@ function finishHcpScenario(){
   if(S.trust>=70){ending=sc.eGood;tone="Roditelj odlazi sa otvorenim umom."}
   else if(S.trust>=40){ending=sc.eMid;tone="Roditelj nije ubeđen, ali nije ni zatvoren."}
   else{ending=sc.eBad;tone="Razgovor je zatvoren — odlazi sa istom pozicijom."}
-  
+
   S.hcpResults.push({title:sc.title,finalTrust:Math.round(S.trust),finalWill:Math.round(S.will)});
   if(!S.hcpCompletedScenarios.includes(S.hcpScenarioIdx))S.hcpCompletedScenarios.push(S.hcpScenarioIdx);
-  
+
   const wrap=document.getElementById("hcpStepWrap");
   const div=document.createElement("div");
   div.className="fade-in";
@@ -379,7 +242,6 @@ function renderPersonas(){
     return '<button class="persona-card'+(dis?' disabled':'')+'" onclick="'+onclick+'">'+badge+'<div class="persona-meta">Lik '+String(i+1).padStart(2,'0')+'</div><div class="persona-name">'+p.name+'</div><div class="persona-tag">«'+p.tag+'»</div><div class="persona-hook">'+p.hook+'</div></button>'
   }).join("")
 }
-
 
 function startPersona(idx){
   S.personaIdx=idx;
@@ -466,12 +328,12 @@ function renderPScene(){
   const scene=p.scenes[S.pSceneIdx];
   document.getElementById("pSceneHint").textContent=`Scena ${S.pSceneIdx+1}/${p.scenes.length}`;
   renderPPips();
-  
+
   const docLine=getDocLine(scene);
-  
+
   // filter choices by requirements
   const availChoices=scene.choices.filter(c=>!c.req||S.pPath.includes(c.req));
-  
+
   document.getElementById("pCard").innerHTML=`<div class="card fade-in"><div class="scn-hdr"><div class="scn-num">Scena ${String(S.pSceneIdx+1).padStart(2,'0')} · ${scene.title}</div></div><div class="bubble doctor"><div class="bubble-meta"><div class="avatar doctor">${p.doc.i}</div><div class="bubble-label">${p.doc.l}</div></div><div class="speech">${docLine}</div></div><div class="prompt">${scene.prompt}</div><div class="choices">${availChoices.map((c,i)=>`<button class="choice-f" onclick="pickPChoice(${scene.choices.indexOf(c)})"><div class="feel-em">${c.em}</div><div class="feel-in">«${c.in}»</div></button>`).join("")}</div><div id="pFb"></div></div>`;
 }
 
@@ -479,28 +341,28 @@ function pickPChoice(idx){
   const p=PERSONAS[S.personaIdx];
   const scene=p.scenes[S.pSceneIdx];
   const c=scene.choices[idx];
-  
+
   const prevA=S.anks,prevS=S.sas,prevO=S.otv,prevD=S.odluka;
   if(c.imp.anks)S.anks=clamp(S.anks+c.imp.anks);
   if(c.imp.sas)S.sas=clamp(S.sas+c.imp.sas);
   if(c.imp.otv)S.otv=clamp(S.otv+c.imp.otv);
   if(c.imp.dec)S.odluka=clamp(S.odluka+c.imp.dec);
-  
+
   if(c.unlock)S.pPath.push(c.unlock);
   S.pChoices.push({sceneIdx:S.pSceneIdx,choiceIdx:idx,em:c.em});
-  
+
   if(c.end)S.pEnding=c.end;
-  
+
   // disable buttons & mark selected
   document.querySelectorAll(".choice-f").forEach((b,i)=>{
     b.disabled=true;
     const cText=b.querySelector(".feel-em").textContent;
     if(cText===c.em)b.classList.add("sel")
   });
-  
+
   // show reaction
   document.getElementById("pFb").innerHTML=`<div class="fb"><div class="fb-lbl" style="color:var(--coral)">U tebi se događa</div><div class="fb-text"><em>${c.re}</em></div></div><div class="next-wrap"><button class="btn btn-coral" onclick="nextPScene()">${S.pSceneIdx<p.scenes.length-1?'Sledeća scena':'Izlazak iz ordinacije'} <span class="arrow">→</span></button></div>`;
-  
+
   renderPParentMeters(1,S.anks-prevA,S.sas-prevS,S.otv-prevO,S.odluka-prevD);
   setTimeout(()=>{const fb=document.getElementById("pFb");if(fb)fb.scrollIntoView({behavior:"smooth",block:"center"})},150);
   saveState()
@@ -525,7 +387,7 @@ function showPEnding(){
   document.getElementById("pSceneHint").textContent="Kraj";
   S.pSceneIdx=p.scenes.length;
   renderPPips();
-  
+
   document.getElementById("pCard").innerHTML=`<div class="end-card fade-in"><div class="end-eb">Posle razgovora</div><div class="scene-narr" style="margin-bottom:24px">${e.phone}</div><div style="margin-bottom:8px;font-size:14px;color:var(--ink-muted);letter-spacing:.04em;text-transform:uppercase;font-weight:500">Šta joj/mu kažeš?</div><div class="choices">${e.opts.map((o,i)=>`<button class="choice-f" onclick="finishPGame(${i})"><div class="feel-em">${o}</div></button>`).join("")}</div></div>`;
   setTimeout(()=>document.getElementById("pCard").scrollIntoView({behavior:"smooth",block:"start"}),60);
   saveState()
@@ -535,12 +397,12 @@ function finishPGame(selectedIdx){
   const p=PERSONAS[S.personaIdx];
   const endingKey=S.pEnding||'closed';
   const e=p.endings[endingKey];
-  
+
   document.querySelectorAll(".choice-f").forEach((b,i)=>{
     b.disabled=true;
     if(i===selectedIdx)b.classList.add("sel")
   });
-  
+
   // append final reflection
   const card=document.querySelector(".end-card");
   const div=document.createElement("div");
@@ -548,7 +410,7 @@ function finishPGame(selectedIdx){
   div.innerHTML=`<div class="end-narr">${e.close.map(line=>'<p>'+line+'</p>').join("")}</div><div class="end-final">${p.finalLine}</div><div class="next-wrap" style="margin-top:30px"><button class="btn btn-ghost" onclick="returnToPersonaPick()">Probaj drugog lika <span class="arrow">↻</span></button> <button class="btn btn-primary" onclick="goHome()">Početak <span class="arrow">→</span></button></div>`;
   card.appendChild(div);
   setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),60);
-  
+
   // record completion
   if(!S.hcpCompletedScenarios)S.hcpCompletedScenarios=[]; // safety
   saveState()
@@ -566,7 +428,3 @@ window.addEventListener("DOMContentLoaded",()=>{
   loadState();
   showScreen(S.screen||"role")
 });
-</script>
-
-</body>
-</html>
