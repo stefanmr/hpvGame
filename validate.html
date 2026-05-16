@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Validator — hpvGame</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:system-ui,sans-serif;background:#f4ede2;color:#1f2624;font-size:15px;line-height:1.5;min-height:100vh;padding:32px 24px}
+h1{font-size:22px;font-weight:600;margin-bottom:4px}
+.sub{color:#7e8580;font-size:13px;margin-bottom:32px}
+.drop{border:2px dashed #1c4a47;padding:48px 32px;text-align:center;cursor:pointer;background:#fbf7ef;transition:all .2s;margin-bottom:24px}
+.drop.over{background:#d5e3d8;border-color:#4a7d68}
+.drop-label{font-size:16px;color:#4a5450;margin-bottom:8px}
+.drop-hint{font-size:13px;color:#7e8580}
+input[type=file]{display:none}
+.results{display:none}
+.file-info{font-size:13px;color:#7e8580;margin-bottom:20px;padding:10px 14px;background:#fbf7ef;border:1px solid rgba(31,38,36,.12)}
+.summary{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.stat{padding:14px 18px;flex:1;min-width:140px}
+.stat.ok{background:#d5e3d8;color:#1f2624}
+.stat.err{background:#f5d9d2;color:#1f2624}
+.stat.warn{background:rgba(200,149,74,.18);color:#1f2624}
+.stat-n{font-size:28px;font-weight:700;line-height:1;margin-bottom:4px}
+.stat-l{font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.7}
+.section{margin-bottom:24px}
+.section-hd{font-size:12px;letter-spacing:.12em;text-transform:uppercase;font-weight:600;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(31,38,36,.12)}
+.section-hd.ok{color:#4a7d68}
+.section-hd.err{color:#b04438}
+.section-hd.warn{color:#c8954a}
+.item{padding:10px 14px;margin-bottom:6px;font-size:14px;display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start}
+.item.err{background:#f5d9d2;border-left:3px solid #b04438}
+.item.warn{background:rgba(200,149,74,.15);border-left:3px solid #c8954a}
+.item.ok{background:#d5e3d8;border-left:3px solid #4a7d68}
+.item-icon{font-size:15px;margin-top:1px}
+.item-body{}
+.item-name{font-weight:600;color:#1f2624}
+.item-msg{color:#4a5450;margin-top:2px}
+code{background:rgba(31,38,36,.08);padding:1px 5px;font-family:monospace;font-size:13px}
+.btn{display:inline-block;padding:10px 22px;background:#1c4a47;color:#fbf7ef;font-size:14px;font-weight:500;cursor:pointer;border:none;margin-top:8px}
+.btn:hover{background:#143432}
+.all-ok{padding:28px;text-align:center;background:#d5e3d8;font-size:18px;font-weight:600;color:#1f2624;margin-bottom:24px}
+</style>
+</head>
+<body>
+
+<h1>Validator — personas.js</h1>
+<p class="sub">Prevuci <code>personas.js</code> ovde ili klikni da odabereš fajl. Proverava sve greške pre pusha.</p>
+
+<div class="drop" id="drop">
+  <div class="drop-label">Prevuci <code>personas.js</code> ovde</div>
+  <div class="drop-hint">ili klikni da odabereš fajl</div>
+  <input type="file" id="fileInput" accept=".js">
+</div>
+
+<div class="results" id="results"></div>
+
+<script>
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+const results = document.getElementById('results');
+
+drop.addEventListener('click', () => fileInput.click());
+drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('over'); });
+drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+drop.addEventListener('drop', e => { e.preventDefault(); drop.classList.remove('over'); handleFile(e.dataTransfer.files[0]); });
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+function handleFile(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => validate(e.target.result, file.name, file.size);
+  reader.readAsText(file);
+}
+
+function validate(src, filename, size) {
+  let personas;
+  const errors = [];
+  const warnings = [];
+  const ok = [];
+
+  // --- Parse ---
+  try {
+    // Izvlačimo PERSONAS niz iz JS fajla
+    const match = src.match(/const\s+PERSONAS\s*=\s*(\[[\s\S]*\]);?\s*$/m) ||
+                  src.match(/const\s+PERSONAS\s*=\s*(\[[\s\S]*\])\s*;/);
+    if (!match) throw new Error('Nije pronađen const PERSONAS=[...] u fajlu.');
+    // eslint-disable-next-line no-new-func
+    personas = Function('"use strict"; return ' + match[1])();
+  } catch (err) {
+    results.style.display = 'block';
+    results.innerHTML = `<div class="item err"><div class="item-icon">✗</div><div class="item-body"><div class="item-name">Parse greška</div><div class="item-msg">${err.message}</div></div></div>`;
+    return;
+  }
+
+  // --- Validacija svake persone ---
+  personas.forEach((p, idx) => {
+    const label = `Persona ${idx + 1}: ${p.name || '(bez imena)'}`;
+
+    // Obavezna polja
+    ['id','name','tag','hook'].forEach(f => {
+      if (!p[f]) errors.push({ label, msg: `Nedostaje obavezno polje <code>${f}</code>.` });
+    });
+
+    // intro
+    if (!Array.isArray(p.intro) || p.intro.length === 0)
+      errors.push({ label, msg: 'Polje <code>intro</code> mora biti neprazan niz stringova.' });
+
+    // start merači
+    const meterKeys = ['anks','sas','otv','dec'];
+    if (!p.start) {
+      errors.push({ label, msg: 'Nedostaje objekat <code>start</code>.' });
+    } else {
+      meterKeys.forEach(k => {
+        if (p.start[k] == null) errors.push({ label, msg: `Nedostaje <code>start.${k}</code>.` });
+        else if (p.start[k] < 0 || p.start[k] > 100) warnings.push({ label, msg: `<code>start.${k}</code> = ${p.start[k]} je van opsega 0–100.` });
+      });
+    }
+
+    // doc
+    if (!p.doc || !p.doc.i || !p.doc.l)
+      errors.push({ label, msg: 'Nedostaje <code>doc.i</code> ili <code>doc.l</code>.' });
+
+    // scenes
+    if (!Array.isArray(p.scenes)) {
+      errors.push({ label, msg: 'Nedostaje niz <code>scenes</code>.' });
+      return;
+    }
+    if (p.scenes.length !== 4)
+      errors.push({ label, msg: `Persona ima ${p.scenes.length} scene — obavezno tačno 4.` });
+
+    // Skupi sve unlockove i reqove po personi
+    const allUnlocks = new Set();
+    const allReqs = [];
+
+    p.scenes.forEach((scene, si) => {
+      const slabel = `${label} › Scena ${si + 1} (${scene.title || '?'})`;
+
+      // Mora imati bar jedan od: docLine, docHigh, docLow, docVariants
+      const hasDoc = scene.docLine || scene.docHigh || scene.docLow || scene.docVariants;
+      if (!hasDoc) errors.push({ label: slabel, msg: 'Nema teksta lekara — dodaj <code>docLine</code>, <code>docHigh/Low</code> ili <code>docVariants</code>.' });
+
+      // docVariants — proveri da ima bar low ili high ili neki tag
+      if (scene.docVariants && typeof scene.docVariants === 'object') {
+        if (Object.keys(scene.docVariants).length === 0)
+          errors.push({ label: slabel, msg: '<code>docVariants</code> je prazan objekat.' });
+      }
+
+      if (!scene.prompt) warnings.push({ label: slabel, msg: 'Nedostaje <code>prompt</code>.' });
+
+      if (!Array.isArray(scene.choices) || scene.choices.length === 0) {
+        errors.push({ label: slabel, msg: 'Nedostaje ili je prazan niz <code>choices</code>.' });
+        return;
+      }
+      if (scene.choices.length < 2) warnings.push({ label: slabel, msg: `Samo ${scene.choices.length} izbor — preporučeno 3–4.` });
+
+      scene.choices.forEach((c, ci) => {
+        const clabel = `${slabel} › Izbor ${ci + 1} (${c.em || '?'})`;
+        if (!c.em) errors.push({ label: clabel, msg: 'Nedostaje <code>em</code> (naziv emocije).' });
+        if (!c.in) warnings.push({ label: clabel, msg: 'Nedostaje <code>in</code> (unutrašnji monolog).' });
+        if (!c.imp || typeof c.imp !== 'object') errors.push({ label: clabel, msg: 'Nedostaje objekat <code>imp</code>.' });
+        if (!c.re) warnings.push({ label: clabel, msg: 'Nedostaje <code>re</code> (naracija posle izbora).' });
+
+        // Skupi unlocks i reqs
+        if (c.unlock) allUnlocks.add(c.unlock);
+        if (c.req) allReqs.push({ tag: c.req, clabel });
+
+        // end — obavezno u poslednjoj sceni
+        if (si === p.scenes.length - 1) {
+          if (!c.end) errors.push({ label: clabel, msg: 'Poslednja scena mora imati <code>end</code> na svakom izboru.' });
+        }
+      });
+    });
+
+    // Proveri req bez unlock
+    allReqs.forEach(({ tag, clabel }) => {
+      if (!allUnlocks.has(tag))
+        errors.push({ label: clabel, msg: `<code>req: "${tag}"</code> nema odgovarajući <code>unlock: "${tag}"</code> nigde u ovoj personi.` });
+    });
+
+    // endings
+    if (!p.endings || typeof p.endings !== 'object') {
+      errors.push({ label, msg: 'Nedostaje objekat <code>endings</code>.' });
+    } else {
+      // Skupi sve end vrednosti iz poslednje scene
+      const lastScene = p.scenes[p.scenes.length - 1];
+      if (lastScene && Array.isArray(lastScene.choices)) {
+        const usedEnds = new Set(lastScene.choices.filter(c => c.end).map(c => c.end));
+        usedEnds.forEach(endKey => {
+          if (!p.endings[endKey])
+            errors.push({ label, msg: `Izbor koristi <code>end: "${endKey}"</code> ali <code>endings.${endKey}</code> ne postoji.` });
+          else {
+            const e = p.endings[endKey];
+            if (!e.phone) warnings.push({ label: `${label} › endings.${endKey}`, msg: 'Nedostaje <code>phone</code>.' });
+            if (!Array.isArray(e.opts) || e.opts.length !== 4) errors.push({ label: `${label} › endings.${endKey}`, msg: `<code>opts</code> mora imati tačno 4 elementa (ima ${e.opts ? e.opts.length : 0}).` });
+            if (!Array.isArray(e.close) || e.close.length === 0) errors.push({ label: `${label} › endings.${endKey}`, msg: '<code>close</code> mora biti neprazan niz.' });
+          }
+        });
+      }
+    }
+
+    // finalLine
+    if (!p.finalLine) warnings.push({ label, msg: 'Nedostaje <code>finalLine</code>.' });
+
+    // Sve OK za ovu personu?
+    const pErrors = errors.filter(e => e.label.startsWith(label));
+    const pWarns  = warnings.filter(w => w.label.startsWith(label));
+    if (pErrors.length === 0 && pWarns.length === 0) {
+      ok.push({ label, msg: `${p.active ? 'Aktivna' : 'Stub (active:0)'} · ${p.scenes ? p.scenes.length : 0} scene · endings: ${p.endings ? Object.keys(p.endings).join(', ') : '—'}` });
+    }
+  });
+
+  // --- Render ---
+  results.style.display = 'block';
+  let html = `<div class="file-info">Fajl: <strong>${filename}</strong> · ${(size/1024).toFixed(1)} KB · ${personas.length} persona</div>`;
+
+  // Summary
+  html += `<div class="summary">
+    <div class="stat ${errors.length === 0 ? 'ok' : 'err'}"><div class="stat-n">${errors.length}</div><div class="stat-l">Greška</div></div>
+    <div class="stat ${warnings.length === 0 ? 'ok' : 'warn'}"><div class="stat-n">${warnings.length}</div><div class="stat-l">Upozorenja</div></div>
+    <div class="stat ok"><div class="stat-n">${personas.length}</div><div class="stat-l">Persona ukupno</div></div>
+    <div class="stat ok"><div class="stat-n">${personas.filter(p=>p.active).length}</div><div class="stat-l">Aktivnih</div></div>
+  </div>`;
+
+  if (errors.length === 0 && warnings.length === 0) {
+    html += `<div class="all-ok">✓ Sve persone su ispravne — možeš da pushuješ.</div>`;
+  }
+
+  if (errors.length > 0) {
+    html += `<div class="section"><div class="section-hd err">Greške (${errors.length}) — mora se popraviti pre pusha</div>`;
+    errors.forEach(e => {
+      html += `<div class="item err"><div class="item-icon">✗</div><div class="item-body"><div class="item-name">${e.label}</div><div class="item-msg">${e.msg}</div></div></div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (warnings.length > 0) {
+    html += `<div class="section"><div class="section-hd warn">Upozorenja (${warnings.length}) — poželjno popraviti</div>`;
+    warnings.forEach(w => {
+      html += `<div class="item warn"><div class="item-icon">⚠</div><div class="item-body"><div class="item-name">${w.label}</div><div class="item-msg">${w.msg}</div></div></div>`;
+    });
+    html += `</div>`;
+  }
+
+  if (ok.length > 0) {
+    html += `<div class="section"><div class="section-hd ok">Ispravne persone (${ok.length})</div>`;
+    ok.forEach(o => {
+      html += `<div class="item ok"><div class="item-icon">✓</div><div class="item-body"><div class="item-name">${o.label}</div><div class="item-msg">${o.msg}</div></div></div>`;
+    });
+    html += `</div>`;
+  }
+
+  html += `<button class="btn" onclick="location.reload()">Validiraj novi fajl</button>`;
+  results.innerHTML = html;
+}
+</script>
+</body>
+</html>
