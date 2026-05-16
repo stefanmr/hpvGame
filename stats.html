@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistika · Od nedoumice do odluke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300..700;9..144,1,300..600&family=DM+Sans:opsz,wght@9..40,300..700&display=swap&subset=latin-ext" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;margin:18px 0 8px}
+  .stat-box{background:var(--cream-warm);padding:16px 18px;border-left:3px solid var(--teal)}
+  .stat-lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);font-weight:500}
+  .stat-val{font-family:'Fraunces',serif;font-size:30px;color:var(--teal-deep);font-weight:500;margin-top:4px;line-height:1}
+  table.data{width:100%;border-collapse:collapse;margin-top:8px;font-size:14px}
+  table.data th,table.data td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+  table.data th{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);font-weight:600;background:var(--cream-warm)}
+  table.data td.num,table.data th.num{text-align:right;font-variant-numeric:tabular-nums}
+  table.data tr:hover td{background:var(--paper)}
+  .login-form{max-width:380px;margin:60px auto;background:var(--paper);padding:30px;border-left:3px solid var(--coral);box-shadow:var(--shadow)}
+  .login-form h2{font-family:'Fraunces',serif;font-weight:500;font-size:24px;margin-bottom:18px;color:var(--teal-deep)}
+  .login-form input{display:block;width:100%;padding:10px 12px;margin-bottom:14px;border:1px solid var(--border);font-family:inherit;font-size:15px;background:var(--paper);box-sizing:border-box}
+  .login-form button{width:100%;padding:12px;background:var(--teal);color:var(--paper);border:none;font-family:inherit;font-size:15px;letter-spacing:.04em;cursor:pointer}
+  .login-form button:hover{background:var(--teal-deep)}
+  .filters{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:16px 0 8px;font-size:14px}
+  .filters label{display:flex;flex-direction:column;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-muted);font-weight:500;gap:4px}
+  .filters select,.filters input,.filters button{padding:8px 12px;font-family:inherit;font-size:14px;border:1px solid var(--border);background:var(--paper);cursor:pointer;color:var(--ink)}
+  .filters button{background:var(--teal);color:var(--paper);border:none;padding:9px 14px}
+  .filters button.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--border)}
+  .filters .live{display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink-soft);font-weight:400;flex-direction:row}
+  .section-h{font-family:'Fraunces',serif;font-size:22px;color:var(--teal-deep);margin:28px 0 6px;font-weight:500}
+  .section-h em{color:var(--coral);font-style:italic}
+  .err{color:var(--err);background:var(--err-bg);padding:8px 12px;font-size:14px;margin:8px 0}
+  .empty{color:var(--ink-muted);font-style:italic;padding:14px 0;font-size:14px}
+  .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.5s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  code.sid{font-size:11px;color:var(--ink-muted);font-family:'DM Sans',monospace}
+  .pl{font-size:12px;color:var(--ink-muted);max-width:480px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<header class="brand">
+  <div class="brand-mark"><a href="index.html" style="color:inherit;text-decoration:none">Od nedoumice <span>do odluke</span></a></div>
+  <div class="brand-meta">statistika · v1</div>
+</header>
+
+<section id="login-view">
+  <form class="login-form" onsubmit="event.preventDefault();window._doLogin()">
+    <h2>Prijava</h2>
+    <input id="email" type="email" placeholder="Email" autocomplete="email" required>
+    <input id="password" type="password" placeholder="Lozinka" autocomplete="current-password" required>
+    <button type="submit">Uloguj se</button>
+    <div id="login-err" class="err" style="display:none;margin-top:14px"></div>
+  </form>
+</section>
+
+<section id="dashboard" style="display:none">
+  <div class="filters">
+    <label>Radionica
+      <select id="filter-workshop"><option value="">— sve —</option></select>
+    </label>
+    <label>Od datuma
+      <input id="filter-from" type="date">
+    </label>
+    <button onclick="window._refresh()">Osveži</button>
+    <label class="live"><input type="checkbox" id="filter-live"> <span id="live-ind"></span> Uživo (10s)</label>
+    <button class="ghost" onclick="window._logout()" style="margin-left:auto">Odjava</button>
+  </div>
+
+  <div class="stats-grid" id="overview"></div>
+
+  <h3 class="section-h">Igra 01 · <em>Lekar</em> — ishodi po scenariju</h3>
+  <div id="hcp-table"></div>
+
+  <h3 class="section-h">Igra 02 · <em>Roditelj</em> — ishodi po liku</h3>
+  <div id="parent-table"></div>
+
+  <h3 class="section-h">Kvalitet izbora po ERI koraku</h3>
+  <div id="hcp-quality"></div>
+
+  <h3 class="section-h">Najnoviji događaji</h3>
+  <div id="recent-table"></div>
+
+  <div id="meta" class="cite" style="margin-top:24px"></div>
+</section>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+const SUPA_URL = "https://xahvkqtmguflkzixxysz.supabase.co";
+const SUPA_KEY = "sb_publishable_XtWSITf0P0a1LvJAFBs_qw_5qTKjAfS";
+const supa = createClient(SUPA_URL, SUPA_KEY);
+
+let LIVE_TIMER = null;
+
+window._doLogin = async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const errEl = document.getElementById("login-err");
+  errEl.style.display = "none";
+  const { error } = await supa.auth.signInWithPassword({ email, password });
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = "block";
+    return;
+  }
+  await showDashboard();
+};
+
+window._logout = async () => {
+  if (LIVE_TIMER) { clearInterval(LIVE_TIMER); LIVE_TIMER = null }
+  await supa.auth.signOut();
+  location.reload();
+};
+
+window._refresh = () => loadData();
+
+async function showDashboard() {
+  document.getElementById("login-view").style.display = "none";
+  document.getElementById("dashboard").style.display = "block";
+  await loadData();
+}
+
+async function loadData() {
+  const wf = document.getElementById("filter-workshop").value;
+  const df = document.getElementById("filter-from").value;
+  let q = supa.from("events").select("*").order("created_at", { ascending: false }).limit(10000);
+  if (wf) q = q.eq("workshop_id", wf);
+  if (df) q = q.gte("created_at", df + "T00:00:00");
+  const { data: events, error } = await q;
+  if (error) {
+    document.getElementById("overview").innerHTML = `<div class="err">Greška: ${error.message}</div>`;
+    return;
+  }
+  renderAll(events || []);
+}
+
+function renderAll(events) {
+  renderWorkshopFilter(events);
+  renderOverview(events);
+  renderHcpTable(events);
+  renderParentTable(events);
+  renderHcpQuality(events);
+  renderRecent(events);
+  document.getElementById("meta").textContent =
+    `Učitano ${events.length} događaja u ${new Date().toLocaleTimeString("sr-Latn")}.`;
+}
+
+function renderWorkshopFilter(events) {
+  const wsel = document.getElementById("filter-workshop");
+  const current = wsel.value;
+  const wids = [...new Set(events.map(e => e.workshop_id).filter(Boolean))].sort();
+  wsel.innerHTML = '<option value="">— sve —</option>' +
+    wids.map(w => `<option value="${escapeHtml(w)}"${w===current?" selected":""}>${escapeHtml(w)}</option>`).join("");
+}
+
+function renderOverview(events) {
+  const sessions = new Set(events.map(e => e.session_id)).size;
+  const hcpEnded = events.filter(e => e.event_type === "hcp_scenario_end").length;
+  const parentEnded = events.filter(e => e.event_type === "parent_ending_shown").length;
+  const pageLoads = events.filter(e => e.event_type === "page_load").length;
+  document.getElementById("overview").innerHTML = `
+    <div class="stat-box"><div class="stat-lbl">Jedinstvene sesije</div><div class="stat-val">${sessions}</div></div>
+    <div class="stat-box"><div class="stat-lbl">Otvaranja strane</div><div class="stat-val">${pageLoads}</div></div>
+    <div class="stat-box"><div class="stat-lbl">Završeni HCP scenariji</div><div class="stat-val">${hcpEnded}</div></div>
+    <div class="stat-box"><div class="stat-lbl">Završene priče roditelja</div><div class="stat-val">${parentEnded}</div></div>`;
+}
+
+function renderHcpTable(events) {
+  const ends = events.filter(e => e.event_type === "hcp_scenario_end" && e.payload);
+  if (!ends.length) {
+    document.getElementById("hcp-table").innerHTML = '<div class="empty">Još nema završenih scenarija.</div>';
+    return;
+  }
+  const groups = {};
+  for (const e of ends) {
+    const idx = e.payload.scenarioIdx ?? -1;
+    groups[idx] ??= { good:0, mid:0, bad:0, trustSum:0, willSum:0, n:0 };
+    groups[idx][e.payload.outcome] = (groups[idx][e.payload.outcome] || 0) + 1;
+    groups[idx].trustSum += e.payload.trust || 0;
+    groups[idx].willSum += e.payload.will || 0;
+    groups[idx].n++;
+  }
+  const rows = Object.keys(groups).sort((a,b) => +a - +b).map(idx => {
+    const g = groups[idx];
+    return `<tr>
+      <td>Scenario ${(+idx + 1).toString().padStart(2,"0")}</td>
+      <td class="num">${g.n}</td>
+      <td class="num" style="color:var(--ok)">${g.good||0}</td>
+      <td class="num">${g.mid||0}</td>
+      <td class="num" style="color:var(--err)">${g.bad||0}</td>
+      <td class="num">${Math.round(g.trustSum / g.n)}</td>
+      <td class="num">${Math.round(g.willSum / g.n)}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("hcp-table").innerHTML = `<table class="data">
+    <thead><tr><th>Scenario</th><th class="num">Završeno</th><th class="num">Dobro</th><th class="num">Srednje</th><th class="num">Loše</th><th class="num">Avg poverenje</th><th class="num">Avg spremnost</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function renderParentTable(events) {
+  const ends = events.filter(e => e.event_type === "parent_ending_shown" && e.payload);
+  if (!ends.length) {
+    document.getElementById("parent-table").innerHTML = '<div class="empty">Još nema završenih priča.</div>';
+    return;
+  }
+  const groups = {};
+  for (const e of ends) {
+    const idx = e.payload.personaIdx ?? -1;
+    groups[idx] ??= { best:0, rushed:0, delayed:0, mid:0, closed:0, n:0, decSum:0 };
+    const k = e.payload.ending;
+    if (k in groups[idx]) groups[idx][k]++;
+    groups[idx].decSum += e.payload.odluka || 0;
+    groups[idx].n++;
+  }
+  const rows = Object.keys(groups).sort((a,b) => +a - +b).map(idx => {
+    const g = groups[idx];
+    return `<tr>
+      <td>Lik ${(+idx + 1).toString().padStart(2,"0")}</td>
+      <td class="num">${g.n}</td>
+      <td class="num" style="color:var(--ok)">${g.best}</td>
+      <td class="num">${g.rushed}</td>
+      <td class="num">${g.delayed}</td>
+      <td class="num">${g.mid}</td>
+      <td class="num" style="color:var(--err)">${g.closed}</td>
+      <td class="num">${Math.round(g.decSum / g.n)}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("parent-table").innerHTML = `<table class="data">
+    <thead><tr><th>Lik</th><th class="num">Završeno</th><th class="num">Najbolji</th><th class="num">Žuran</th><th class="num">Odložen</th><th class="num">Srednji</th><th class="num">Zatvoren</th><th class="num">Avg odluka</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function renderHcpQuality(events) {
+  const choices = events.filter(e => e.event_type === "hcp_choice" && e.payload);
+  if (!choices.length) {
+    document.getElementById("hcp-quality").innerHTML = '<div class="empty">Još nema izbora.</div>';
+    return;
+  }
+  const labels = ["Eliciraj","Afirmiši","Opovrgni","Činjenice"];
+  const groups = {};
+  for (const e of choices) {
+    const k = e.payload.stepIdx ?? -1;
+    groups[k] ??= { good:0, neutral:0, bad:0, n:0 };
+    const q = e.payload.quality;
+    if (q in groups[k]) groups[k][q]++;
+    groups[k].n++;
+  }
+  const rows = Object.keys(groups).sort((a,b) => +a - +b).map(k => {
+    const g = groups[k];
+    const pct = v => g.n ? Math.round(100 * v / g.n) : 0;
+    return `<tr>
+      <td>${(+k + 1)}. ${labels[+k] || "?"}</td>
+      <td class="num">${g.n}</td>
+      <td class="num" style="color:var(--ok)">${g.good} (${pct(g.good)}%)</td>
+      <td class="num">${g.neutral} (${pct(g.neutral)}%)</td>
+      <td class="num" style="color:var(--err)">${g.bad} (${pct(g.bad)}%)</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("hcp-quality").innerHTML = `<table class="data">
+    <thead><tr><th>Korak</th><th class="num">Klikova</th><th class="num">Dobro</th><th class="num">Neutralno</th><th class="num">Loše</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function renderRecent(events) {
+  if (!events.length) {
+    document.getElementById("recent-table").innerHTML = '<div class="empty">Nema događaja.</div>';
+    return;
+  }
+  const rows = events.slice(0, 50).map(e => {
+    const t = new Date(e.created_at).toLocaleString("sr-Latn", { hour12: false });
+    const sid = (e.session_id || "").slice(0, 8);
+    const pl = escapeHtml(JSON.stringify(e.payload || {}));
+    return `<tr>
+      <td style="white-space:nowrap">${t}</td>
+      <td><code class="sid">${sid}</code></td>
+      <td>${escapeHtml(e.workshop_id || "—")}</td>
+      <td><strong>${escapeHtml(e.event_type)}</strong></td>
+      <td><span class="pl" title="${pl}">${pl}</span></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("recent-table").innerHTML = `<table class="data">
+    <thead><tr><th>Vreme</th><th>Sesija</th><th>Radionica</th><th>Događaj</th><th>Payload</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+// Filters re-trigger load
+document.getElementById("filter-workshop").addEventListener("change", loadData);
+document.getElementById("filter-from").addEventListener("change", loadData);
+document.getElementById("filter-live").addEventListener("change", e => {
+  const ind = document.getElementById("live-ind");
+  if (e.target.checked) {
+    LIVE_TIMER = setInterval(loadData, 10000);
+    ind.innerHTML = '<span class="pulse"></span>';
+  } else {
+    clearInterval(LIVE_TIMER);
+    LIVE_TIMER = null;
+    ind.innerHTML = "";
+  }
+});
+
+// Init
+(async () => {
+  const { data } = await supa.auth.getSession();
+  if (data.session) await showDashboard();
+})();
+</script>
+</body>
+</html>

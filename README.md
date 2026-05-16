@@ -2,7 +2,7 @@
 
 Interaktivna edukativna igra za zdravstvene radnike — vežbanje empatičke komunikacije o HPV vakcinaciji. Dve perspektive: lekar koji vodi razgovor i roditelj koji okleva.
 
-**[→ Otvori igru](https://stefanmr.github.io/hpvGame/)** &nbsp;·&nbsp; **[→ Validator](https://stefanmr.github.io/hpvGame/validate.html)**
+**[→ Otvori igru](https://stefanmr.github.io/hpvGame/)** &nbsp;·&nbsp; **[→ Validator](https://stefanmr.github.io/hpvGame/validate.html)** &nbsp;·&nbsp; **[→ Statistika](https://stefanmr.github.io/hpvGame/stats.html)**
 
 ---
 
@@ -16,6 +16,7 @@ Interaktivna edukativna igra za zdravstvene radnike — vežbanje empatičke kom
 | `validate.html` | ne | Alat za proveru ispravnosti personas.js |
 | `engine.js` | ne | Logika igre, state, render |
 | `analytics.js` | konfiguracija | Anonimno beleženje izbora (Supabase) |
+| `stats.html` | ne | Dashboard za facilitatora (login potreban) |
 | `styles.css` | ne | CSS |
 | `index.html` | ne | HTML struktura |
 
@@ -85,6 +86,15 @@ Igra anonimno beleži izbore u Supabase bazu radi istraživanja efikasnosti vež
 Saglasnost je prikazana u uvodnom ekranu sa opt-out linkom. Ako korisnik klikne odustajanje, šalje se marker `consent_revoked` i `track()` postaje no-op za tu sesiju i sve buduće.
 
 Konfiguracija (URL projekta + publishable key) ide u `analytics.js`. Anon ima samo `insert` pravo na `events` tabelu; čitanje je iza Supabase autentikacije (RLS politika).
+
+**Tokom radionice:**
+- Otvori `stats.html`, uloguj se sa Supabase email-om, filtriraj po `workshop_id`-ju.
+- Uključi "Uživo" za auto-osveži svakih 10 sekundi.
+- Vidiš: broj sesija, distribucija ishoda po scenariju/liku, kvalitet izbora po ERI koraku, najnoviji događaji.
+
+**Posle radionice:**
+- Export podataka: Supabase Studio → Table Editor → `events` → "Export CSV".
+- Za naprednije upite: Supabase SQL Editor (npr. najlošije birane opcije, drop-off između scena).
 
 ## Reference
 
