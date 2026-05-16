@@ -33,6 +33,8 @@ function loadState(){try{const x=localStorage.getItem(STORAGE_KEY);if(x){Object.
 function saveState(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(S))}catch(e){}}
 function resetState(){if(!confirm("Resetuj sve i počni iznova?"))return;try{localStorage.removeItem(STORAGE_KEY)}catch(e){}location.reload()}
 
+function shuffle(arr){const a=[...arr];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a}
+
 function goHome(){if(S.screen!=="role"&&!confirm("Vratiti se na početak? Trenutni napredak se čuva."))return;showScreen("role");S.screen="role";saveState()}
 
 function showScreen(id){["s-role","s-hcp-profile","s-hcp-pick","s-hcp-game","s-hcp-summary","s-parent-pick","s-parent-game"].forEach(x=>document.getElementById(x).classList.add("hidden"));document.getElementById("s-"+id).classList.remove("hidden");updateCrumb(id);window.scrollTo({top:0,behavior:"smooth"})}
@@ -158,7 +160,8 @@ function renderHcpStep(){
   const div=document.createElement("div");
   div.className="fade-in";
   div.id=`hcp-step-${S.hcpStepIdx}`;
-  div.innerHTML=`<div class="step-eb"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${labels[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${step.o.map((opt,i)=>`<button class="choice" onclick="pickHcpChoice(${i})">${opt.x}</button>`).join("")}</div><div id="hcpFb"></div>`;
+  const shuffledOpts=shuffle(step.o.map((opt,i)=>({...opt,_i:i})));
+  div.innerHTML=`<div class="step-eb"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${labels[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${shuffledOpts.map(opt=>`<button class="choice" onclick="pickHcpChoice(${opt._i})">${opt.x}</button>`).join("")}</div><div id="hcpFb"></div>`;
   wrap.appendChild(div);
   setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),60)
 }
@@ -332,7 +335,7 @@ function renderPScene(){
   const docLine=getDocLine(scene);
 
   // filter choices by requirements
-  const availChoices=scene.choices.filter(c=>!c.req||S.pPath.includes(c.req));
+  const availChoices=shuffle(scene.choices.filter(c=>!c.req||S.pPath.includes(c.req)));
 
   document.getElementById("pCard").innerHTML=`<div class="card fade-in"><div class="scn-hdr"><div class="scn-num">Scena ${String(S.pSceneIdx+1).padStart(2,'0')} · ${scene.title}</div></div><div class="bubble doctor"><div class="bubble-meta"><div class="avatar doctor">${p.doc.i}</div><div class="bubble-label">${p.doc.l}</div></div><div class="speech">${docLine}</div></div><div class="prompt">${scene.prompt}</div><div class="choices">${availChoices.map((c,i)=>`<button class="choice-f" onclick="pickPChoice(${scene.choices.indexOf(c)})"><div class="feel-em">${c.em}</div><div class="feel-in">«${c.in}»</div></button>`).join("")}</div><div id="pFb"></div></div>`;
 }

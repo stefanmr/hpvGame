@@ -69,6 +69,14 @@ Ending se određuje po finalnom `trust`: ≥ 70 → `eGood`, 40–69 → `eMid`,
 
 ---
 
+## Potencijalni TODO
+
+- **Više scena po personi/scenariju** — trenutno je fiksno 4. Parametrizovati u `engine.js` (pip logika i progress bar). Omogućilo bi duže HCP scenarije sa više koraka.
+- **Prenos trust/will između scenarija** — akumulisani score u sesiji umesto reset-a na 50/30 pri svakom novom scenariju. Pedagoški: vidi da konzistentno loše odluke imaju kumulativni efekat.
+- **Adaptivni odabir sledećeg scenarija** — po ostvarenom finalnom trust-u predloži scenario koji adresira isti attitude root ali iz druge perspektive.
+- **Mid-game debrief** — posle svake sesije prikaži koje attitude roots je igrac konzistentno pogrešno identifikovao.
+- **Unlock-based grananje između scena u HCP igri** — analogno `req`/`unlock` mehanizmu u parent igri; lekar dobija drugačiji tok razgovora zavisno od ranog izbora.
+
 ## Reference
 
 - Fasce, A. et al. (2023). Inoculation and attitudinal inoculation reduce misperceptions and vaccine hesitancy. *Nature Human Behaviour*, 7, 1462–1480. — taksonomija 11 attitude roots korišćena u Koraku 1 Igre 01.
