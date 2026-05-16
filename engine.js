@@ -167,6 +167,7 @@ function renderHcpStep(){
   const div=document.createElement("div");
   div.className="fade-in";
   div.id=`hcp-step-${S.hcpStepIdx}`;
+  S.hcpAttempts=0;
   const shuffledOpts=shuffle(step.o.map((opt,i)=>({...opt,_i:i})));
   div.innerHTML=`<div class="step-eb"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${labels[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${shuffledOpts.map(opt=>`<button class="choice" onclick="pickHcpChoice(${opt._i},this)">${opt.x}</button>`).join("")}</div><div id="hcpFb-${S.hcpStepIdx}"></div>`;
   wrap.appendChild(div);
@@ -186,17 +187,20 @@ function pickHcpChoice(idx,btn){
   if(imp.will)S.will=clamp(S.will+imp.will);
   const dt=S.trust-prevT,dw=S.will-prevW;
 
-  if(q==="bad"){
+  const isCorrect=q==="good";
+  if(!isCorrect){
     btn.disabled=true;
-    btn.classList.add("sel","bad");
+    btn.classList.add("sel",q);
   }else{
     btn.closest(".choices").querySelectorAll(".choice").forEach(b=>b.disabled=true);
     btn.classList.add("sel",q);
   }
 
-  const lblMap={good:"Odlično",neutral:"Funkcionalno",bad:"Rizično — pokušajte drugi odgovor"};
+  S.hcpAttempts=(S.hcpAttempts||0)+1;
+
+  const lblMap={good:"Odlično",neutral:"Funkcionalno — probajte da pronađete bolji odgovor",bad:"Rizično — pokušajte drugi odgovor"};
   const fLbl=step.t==="root"?(opt.ok?"Tačno":"Nije tačno — pokušajte ponovo"):lblMap[opt.q];
-  const nextBtn=q!=="bad"?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
+  const nextBtn=isCorrect?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
   document.getElementById(`hcpFb-${S.hcpStepIdx}`).innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
   renderHcpMeters(1,dt,dw);
   track("hcp_choice",{
@@ -206,6 +210,8 @@ function pickHcpChoice(idx,btn){
     optionIdx:idx,
     optionText:_short(opt.x,140),
     quality:q,
+    isCorrect:isCorrect,
+    attemptIdx:S.hcpAttempts,
     trust:S.trust,will:S.will,
     dTrust:dt,dWill:dw
   });
