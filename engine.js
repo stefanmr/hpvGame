@@ -217,7 +217,7 @@ function finishHcpScenario(){
   div.className="fade-in";
   div.innerHTML=`<div style="background:var(--cream-warm);padding:28px 26px;margin-top:20px;border-left:3px solid var(--teal)"><div style="font-family:'Fraunces',serif;font-style:italic;color:var(--coral);font-size:13px;margin-bottom:8px">Kraj razgovora</div><h3 style="font-family:'Fraunces',serif;font-size:24px;color:var(--teal-deep);line-height:1.2;margin-bottom:14px;font-weight:500">${tone}</h3><div class="bubble parent" style="margin-top:14px"><div class="bubble-meta"><div class="avatar parent">${sc.parent.i}</div><div class="bubble-label">${sc.parent.l}</div></div><div class="speech">${ending}</div></div><div style="margin-top:18px;font-size:15px;color:var(--ink-soft);line-height:1.55"><strong style="color:var(--teal)">Pouka:</strong> ${sc.take}</div><div class="next-wrap"><button class="btn btn-primary" onclick="returnToHcpPick()">Nazad na scenarije <span class="arrow">→</span></button></div></div>`;
   wrap.appendChild(div);
-  setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),60);
+  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
   saveState()
 }
 
@@ -416,7 +416,7 @@ function finishPGame(selectedIdx){
   div.className="end-divider fade-in";
   div.innerHTML=`<div class="end-narr">${e.close.map(line=>'<p>'+line+'</p>').join("")}</div><div class="end-final">${p.finalLine}</div><div class="next-wrap" style="margin-top:30px"><button class="btn btn-ghost" onclick="returnToPersonaPick()">Probaj drugog lika <span class="arrow">↻</span></button> <button class="btn btn-primary" onclick="goHome()">Početak <span class="arrow">→</span></button></div>`;
   card.appendChild(div);
-  setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),60);
+  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
 
   // record completion
   if(!S.hcpCompletedScenarios)S.hcpCompletedScenarios=[]; // safety
