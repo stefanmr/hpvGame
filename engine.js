@@ -161,12 +161,12 @@ function renderHcpStep(){
   div.className="fade-in";
   div.id=`hcp-step-${S.hcpStepIdx}`;
   const shuffledOpts=shuffle(step.o.map((opt,i)=>({...opt,_i:i})));
-  div.innerHTML=`<div class="step-eb"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${labels[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${shuffledOpts.map(opt=>`<button class="choice" onclick="pickHcpChoice(${opt._i})">${opt.x}</button>`).join("")}</div><div id="hcpFb-${S.hcpStepIdx}"></div>`;
+  div.innerHTML=`<div class="step-eb"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${labels[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${shuffledOpts.map(opt=>`<button class="choice" onclick="pickHcpChoice(${opt._i},this)">${opt.x}</button>`).join("")}</div><div id="hcpFb-${S.hcpStepIdx}"></div>`;
   wrap.appendChild(div);
   setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),60)
 }
 
-function pickHcpChoice(idx){
+function pickHcpChoice(idx,btn){
   const sc=HCP_SCENARIOS[S.hcpScenarioIdx];
   const step=sc.steps[S.hcpStepIdx];
   const opt=step.o[idx];
@@ -179,12 +179,12 @@ function pickHcpChoice(idx){
   if(imp.will)S.will=clamp(S.will+imp.will);
   const dt=S.trust-prevT,dw=S.will-prevW;
 
-  const clickedBtn=document.querySelector(`#hcp-step-${S.hcpStepIdx} .choice[onclick="pickHcpChoice(${idx})"]`);
   if(q==="bad"){
-    if(clickedBtn){clickedBtn.disabled=true;clickedBtn.classList.add("sel","bad")}
+    btn.disabled=true;
+    btn.classList.add("sel","bad");
   }else{
-    document.querySelectorAll(`#hcp-step-${S.hcpStepIdx} .choice`).forEach(b=>b.disabled=true);
-    if(clickedBtn)clickedBtn.classList.add("sel",q);
+    btn.closest(".choices").querySelectorAll(".choice").forEach(b=>b.disabled=true);
+    btn.classList.add("sel",q);
   }
 
   const lblMap={good:"Odlično",neutral:"Funkcionalno",bad:"Rizično — pokušajte drugi odgovor"};
