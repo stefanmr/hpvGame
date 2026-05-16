@@ -31,6 +31,8 @@
   .filters .live{display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink-soft);font-weight:400;flex-direction:row}
   .section-h{font-family:'Fraunces',serif;font-size:22px;color:var(--teal-deep);margin:28px 0 6px;font-weight:500}
   .section-h em{color:var(--coral);font-style:italic}
+  .sub-h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted);font-weight:600;margin:6px 0 4px}
+  .pct{color:var(--ink-muted);font-size:12px;margin-left:4px}
   .err{color:var(--err);background:var(--err-bg);padding:8px 12px;font-size:14px;margin:8px 0}
   .empty{color:var(--ink-muted);font-style:italic;padding:14px 0;font-size:14px}
   .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.5s ease-in-out infinite}
@@ -81,6 +83,13 @@
 
   <h3 class="section-h">Kvalitet izbora po ERI koraku</h3>
   <div id="hcp-quality"></div>
+
+  <h3 class="section-h">Drop-off — <em>gde igrači prekidaju</em></h3>
+  <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5">Procenat sesija koje su dosegle svaku fazu (od broja onih koji su pokrenuli scenario/lika). Boja: <span style="color:var(--ok)">≥80%</span> · <span style="color:var(--gold)">50–79%</span> · <span style="color:var(--err)">&lt;50%</span>.</div>
+  <div class="sub-h">Igra 01 · Lekar</div>
+  <div id="hcp-funnel"></div>
+  <div class="sub-h" style="margin-top:18px">Igra 02 · Roditelj</div>
+  <div id="parent-funnel"></div>
 
   <h3 class="section-h">Najnoviji događaji</h3>
   <div id="recent-table"></div>
@@ -147,9 +156,100 @@ function renderAll(events) {
   renderHcpTable(events);
   renderParentTable(events);
   renderHcpQuality(events);
+  renderHcpFunnel(events);
+  renderParentFunnel(events);
   renderRecent(events);
   document.getElementById("meta").textContent =
     `Učitano ${events.length} događaja u ${new Date().toLocaleTimeString("sr-Latn")}.`;
+}
+
+function pctCell(count, total) {
+  const pct = total ? Math.min(100, Math.round(100 * count / total)) : 0;
+  const color = pct >= 80 ? "var(--ok)" : pct >= 50 ? "var(--gold)" : "var(--err)";
+  return `<td class="num"><span style="color:${color}">${count}</span><span class="pct">(${pct}%)</span></td>`;
+}
+
+function renderHcpFunnel(events) {
+  const started = {}, atStep = [{}, {}, {}, {}], completed = {};
+  for (const e of events) {
+    const sid = e.session_id, p = e.payload || {};
+    if (e.event_type === "hcp_scenario_start" && p.scenarioIdx != null) {
+      (started[p.scenarioIdx] ??= new Set()).add(sid);
+    } else if (e.event_type === "hcp_choice" && p.scenarioIdx != null && p.stepIdx != null && p.stepIdx >= 0 && p.stepIdx < 4) {
+      (atStep[p.stepIdx][p.scenarioIdx] ??= new Set()).add(sid);
+    } else if (e.event_type === "hcp_scenario_end" && p.scenarioIdx != null) {
+      (completed[p.scenarioIdx] ??= new Set()).add(sid);
+    }
+  }
+  const indices = [...new Set([
+    ...Object.keys(started),
+    ...Object.keys(completed),
+    ...atStep.flatMap(o => Object.keys(o))
+  ])].map(Number).sort((a, b) => a - b);
+  if (!indices.length) {
+    document.getElementById("hcp-funnel").innerHTML = '<div class="empty">Još nema HCP sesija.</div>';
+    return;
+  }
+  const sz = (m, i) => (m[i] || new Set()).size;
+  const rows = indices.map(i => {
+    const n = sz(started, i);
+    return `<tr>
+      <td>Scenario ${(i + 1).toString().padStart(2, "0")}</td>
+      <td class="num"><strong>${n}</strong></td>
+      ${pctCell(sz(atStep[0], i), n)}
+      ${pctCell(sz(atStep[1], i), n)}
+      ${pctCell(sz(atStep[2], i), n)}
+      ${pctCell(sz(atStep[3], i), n)}
+      ${pctCell(sz(completed, i), n)}
+    </tr>`;
+  }).join("");
+  document.getElementById("hcp-funnel").innerHTML = `<table class="data">
+    <thead><tr><th>Scenario</th><th class="num">Pokrenuto</th><th class="num">K.1 Eliciraj</th><th class="num">K.2 Afirmiši</th><th class="num">K.3 Opovrgni</th><th class="num">K.4 Činjenice</th><th class="num">Završeno</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function renderParentFunnel(events) {
+  const started = {}, atScene = [{}, {}, {}, {}], endingShown = {}, finalRef = {};
+  for (const e of events) {
+    const sid = e.session_id, p = e.payload || {}, i = p.personaIdx;
+    if (i == null) continue;
+    if (e.event_type === "parent_persona_start") {
+      (started[i] ??= new Set()).add(sid);
+    } else if (e.event_type === "parent_choice" && p.sceneIdx != null && p.sceneIdx >= 0 && p.sceneIdx < 4) {
+      (atScene[p.sceneIdx][i] ??= new Set()).add(sid);
+    } else if (e.event_type === "parent_ending_shown") {
+      (endingShown[i] ??= new Set()).add(sid);
+    } else if (e.event_type === "parent_final_reflection") {
+      (finalRef[i] ??= new Set()).add(sid);
+    }
+  }
+  const indices = [...new Set([
+    ...Object.keys(started),
+    ...Object.keys(endingShown),
+    ...Object.keys(finalRef),
+    ...atScene.flatMap(o => Object.keys(o))
+  ])].map(Number).sort((a, b) => a - b);
+  if (!indices.length) {
+    document.getElementById("parent-funnel").innerHTML = '<div class="empty">Još nema sesija roditelja.</div>';
+    return;
+  }
+  const sz = (m, i) => (m[i] || new Set()).size;
+  const rows = indices.map(i => {
+    const n = sz(started, i);
+    return `<tr>
+      <td>Lik ${(i + 1).toString().padStart(2, "0")}</td>
+      <td class="num"><strong>${n}</strong></td>
+      ${pctCell(sz(atScene[0], i), n)}
+      ${pctCell(sz(atScene[1], i), n)}
+      ${pctCell(sz(atScene[2], i), n)}
+      ${pctCell(sz(atScene[3], i), n)}
+      ${pctCell(sz(endingShown, i), n)}
+      ${pctCell(sz(finalRef, i), n)}
+    </tr>`;
+  }).join("");
+  document.getElementById("parent-funnel").innerHTML = `<table class="data">
+    <thead><tr><th>Lik</th><th class="num">Pokrenuto</th><th class="num">Scena 1</th><th class="num">Scena 2</th><th class="num">Scena 3</th><th class="num">Scena 4</th><th class="num">Kraj</th><th class="num">Refleksija</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
 }
 
 function renderWorkshopFilter(events) {
