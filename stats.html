@@ -31,8 +31,13 @@
   .filters .live{display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;letter-spacing:0;font-size:13px;color:var(--ink-soft);font-weight:400;flex-direction:row}
   .section-h{font-family:'Fraunces',serif;font-size:22px;color:var(--teal-deep);margin:28px 0 6px;font-weight:500}
   .section-h em{color:var(--coral);font-style:italic}
+  .game-h{font-family:'Fraunces',serif;font-size:28px;color:var(--teal-deep);font-weight:500;margin:48px 0 4px;padding-top:28px;border-top:2px solid var(--coral);font-style:italic;line-height:1.2}
+  .game-h:first-of-type{margin-top:34px}
+  .game-h em{color:var(--coral);font-style:italic}
+  .game-h .game-num{font-family:'DM Sans',sans-serif;font-style:normal;color:var(--coral);font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;display:block;margin-bottom:8px;line-height:1}
   .sub-h{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted);font-weight:600;margin:6px 0 4px}
   .pct{color:var(--ink-muted);font-size:12px;margin-left:4px}
+  .legend{font-size:13px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5}
   .err{color:var(--err);background:var(--err-bg);padding:8px 12px;font-size:14px;margin:8px 0}
   .empty{color:var(--ink-muted);font-style:italic;padding:14px 0;font-size:14px}
   .pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--ok);animation:pulse 1.5s ease-in-out infinite}
@@ -75,23 +80,32 @@
 
   <div class="stats-grid" id="overview"></div>
 
-  <h3 class="section-h">Igra 01 · <em>Lekar</em> — ishodi po scenariju</h3>
-  <div id="hcp-table"></div>
+  <h2 class="game-h"><span class="game-num">Igra 01</span>Razgovor sa <em>roditeljem</em> — uloga lekara</h2>
 
-  <h3 class="section-h">Igra 02 · <em>Roditelj</em> — ishodi po liku</h3>
-  <div id="parent-table"></div>
+  <h3 class="section-h">Ishodi po scenariju</h3>
+  <div id="hcp-table"></div>
 
   <h3 class="section-h">Kvalitet izbora po ERI koraku</h3>
   <div id="hcp-quality"></div>
 
   <h3 class="section-h">Drop-off — <em>gde igrači prekidaju</em></h3>
-  <div style="font-size:13px;color:var(--ink-soft);margin-bottom:10px;line-height:1.5">Procenat sesija koje su dosegle svaku fazu (od broja onih koji su pokrenuli scenario/lika). Boja: <span style="color:var(--ok)">≥80%</span> · <span style="color:var(--gold)">50–79%</span> · <span style="color:var(--err)">&lt;50%</span>.</div>
-  <div class="sub-h">Igra 01 · Lekar</div>
+  <div class="legend">Procenat sesija koje su dosegle svaku fazu (od broja onih koji su pokrenuli scenario). Boja: <span style="color:var(--ok)">≥80%</span> · <span style="color:var(--gold)">50–79%</span> · <span style="color:var(--err)">&lt;50%</span>.</div>
   <div id="hcp-funnel"></div>
-  <div class="sub-h" style="margin-top:18px">Igra 02 · Roditelj</div>
+
+  <h3 class="section-h">Prosečan broj pokušaja po koraku</h3>
+  <div class="legend">Koliko klikova prosečno treba da igrač pogodi "dobar" odgovor. 1.0 znači "prvi pokušaj uvek tačan"; veće brojke znače da je opcija nejasna ili distraktivna.</div>
+  <div id="hcp-attempts"></div>
+
+  <h2 class="game-h"><span class="game-num">Igra 02</span>U <em>cipelama</em> roditelja</h2>
+
+  <h3 class="section-h">Ishodi po liku</h3>
+  <div id="parent-table"></div>
+
+  <h3 class="section-h">Drop-off — <em>gde igrači prekidaju</em></h3>
+  <div class="legend">Procenat sesija koje su dosegle svaku fazu (od broja onih koji su pokrenuli lika). Boja: <span style="color:var(--ok)">≥80%</span> · <span style="color:var(--gold)">50–79%</span> · <span style="color:var(--err)">&lt;50%</span>.</div>
   <div id="parent-funnel"></div>
 
-  <h3 class="section-h">Najnoviji događaji</h3>
+  <h2 class="game-h"><span class="game-num">Sve sesije</span>Najnoviji događaji</h2>
   <div id="recent-table"></div>
 
   <div id="meta" class="cite" style="margin-top:24px"></div>
@@ -107,6 +121,7 @@ const SUPA_KEY = "sb_publishable_XtWSITf0P0a1LvJAFBs_qw_5qTKjAfS";
 const supa = createClient(SUPA_URL, SUPA_KEY);
 
 let LIVE_TIMER = null;
+let TITLES = { hcp: {}, parent: {} };
 
 window._doLogin = async () => {
   const email = document.getElementById("email").value.trim();
@@ -150,13 +165,39 @@ async function loadData() {
   renderAll(events || []);
 }
 
+function buildTitles(events) {
+  TITLES = { hcp: {}, parent: {} };
+  for (const e of events) {
+    const p = e.payload || {};
+    if (e.event_type === "hcp_scenario_start" && p.scenarioIdx != null && p.title) {
+      TITLES.hcp[p.scenarioIdx] = p.title;
+    } else if (e.event_type === "parent_persona_start" && p.personaIdx != null && p.name) {
+      TITLES.parent[p.personaIdx] = p.name;
+    }
+  }
+}
+
+function hcpLabel(idx) {
+  const num = (+idx + 1).toString().padStart(2, "0");
+  const title = TITLES.hcp[idx];
+  return title ? `<strong>${num}</strong> · ${escapeHtml(title)}` : `Scenario ${num}`;
+}
+
+function parentLabel(idx) {
+  const num = (+idx + 1).toString().padStart(2, "0");
+  const name = TITLES.parent[idx];
+  return name ? `<strong>${num}</strong> · ${escapeHtml(name)}` : `Lik ${num}`;
+}
+
 function renderAll(events) {
+  buildTitles(events);
   renderWorkshopFilter(events);
   renderOverview(events);
   renderHcpTable(events);
-  renderParentTable(events);
   renderHcpQuality(events);
   renderHcpFunnel(events);
+  renderHcpAttempts(events);
+  renderParentTable(events);
   renderParentFunnel(events);
   renderRecent(events);
   document.getElementById("meta").textContent =
@@ -194,7 +235,7 @@ function renderHcpFunnel(events) {
   const rows = indices.map(i => {
     const n = sz(started, i);
     return `<tr>
-      <td>Scenario ${(i + 1).toString().padStart(2, "0")}</td>
+      <td>${hcpLabel(i)}</td>
       <td class="num"><strong>${n}</strong></td>
       ${pctCell(sz(atStep[0], i), n)}
       ${pctCell(sz(atStep[1], i), n)}
@@ -205,6 +246,38 @@ function renderHcpFunnel(events) {
   }).join("");
   document.getElementById("hcp-funnel").innerHTML = `<table class="data">
     <thead><tr><th>Scenario</th><th class="num">Pokrenuto</th><th class="num">K.1 Eliciraj</th><th class="num">K.2 Afirmiši</th><th class="num">K.3 Opovrgni</th><th class="num">K.4 Činjenice</th><th class="num">Završeno</th></tr></thead>
+    <tbody>${rows}</tbody></table>`;
+}
+
+function renderHcpAttempts(events) {
+  const groups = {};
+  for (const e of events) {
+    if (e.event_type !== "hcp_choice") continue;
+    const p = e.payload || {};
+    if (!p.isCorrect) continue;
+    const k = p.stepIdx;
+    if (k == null) continue;
+    groups[k] ??= { sum: 0, n: 0 };
+    groups[k].sum += (p.attemptIdx || 1);
+    groups[k].n++;
+  }
+  if (!Object.keys(groups).length) {
+    document.getElementById("hcp-attempts").innerHTML = '<div class="empty">Još nema podataka o pokušajima — pojaviće se sa novim sesijama posle ažuriranja igre.</div>';
+    return;
+  }
+  const labels = ["Eliciraj", "Afirmiši", "Opovrgni", "Činjenice"];
+  const rows = Object.keys(groups).sort((a, b) => +a - +b).map(k => {
+    const g = groups[k];
+    const avg = g.sum / g.n;
+    const color = avg < 1.5 ? "var(--ok)" : avg < 2.5 ? "var(--gold)" : "var(--err)";
+    return `<tr>
+      <td>${(+k + 1)}. ${labels[+k] || "?"}</td>
+      <td class="num">${g.n}</td>
+      <td class="num"><span style="color:${color};font-weight:600">${avg.toFixed(2)}</span></td>
+    </tr>`;
+  }).join("");
+  document.getElementById("hcp-attempts").innerHTML = `<table class="data">
+    <thead><tr><th>Korak</th><th class="num">Završeno koraka</th><th class="num">Prosečno pokušaja</th></tr></thead>
     <tbody>${rows}</tbody></table>`;
 }
 
@@ -237,7 +310,7 @@ function renderParentFunnel(events) {
   const rows = indices.map(i => {
     const n = sz(started, i);
     return `<tr>
-      <td>Lik ${(i + 1).toString().padStart(2, "0")}</td>
+      <td>${parentLabel(i)}</td>
       <td class="num"><strong>${n}</strong></td>
       ${pctCell(sz(atScene[0], i), n)}
       ${pctCell(sz(atScene[1], i), n)}
@@ -290,7 +363,7 @@ function renderHcpTable(events) {
   const rows = Object.keys(groups).sort((a,b) => +a - +b).map(idx => {
     const g = groups[idx];
     return `<tr>
-      <td>Scenario ${(+idx + 1).toString().padStart(2,"0")}</td>
+      <td>${hcpLabel(idx)}</td>
       <td class="num">${g.n}</td>
       <td class="num" style="color:var(--ok)">${g.good||0}</td>
       <td class="num">${g.mid||0}</td>
@@ -322,7 +395,7 @@ function renderParentTable(events) {
   const rows = Object.keys(groups).sort((a,b) => +a - +b).map(idx => {
     const g = groups[idx];
     return `<tr>
-      <td>Lik ${(+idx + 1).toString().padStart(2,"0")}</td>
+      <td>${parentLabel(idx)}</td>
       <td class="num">${g.n}</td>
       <td class="num" style="color:var(--ok)">${g.best}</td>
       <td class="num">${g.rushed}</td>
