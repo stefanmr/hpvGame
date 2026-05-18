@@ -66,8 +66,16 @@ function _analyticsWorkshopId(){
   catch(e){return null}
 }
 
+function _gameVersion(){
+  try{
+    const m=document.querySelector('meta[name="game-version"]');
+    return m?m.getAttribute("content"):null
+  }catch(e){return null}
+}
+
 const ANALYTICS_SID=_analyticsSessionId();
 const ANALYTICS_WID=_analyticsWorkshopId();
+const ANALYTICS_VER=_gameVersion();
 const ANALYTICS_T0=Date.now();
 
 function _isConfigured(){
@@ -92,7 +100,7 @@ function track(eventType,payload){
         session_id:ANALYTICS_SID,
         workshop_id:ANALYTICS_WID,
         event_type:eventType,
-        payload:Object.assign({t_ms:Date.now()-ANALYTICS_T0},payload||{})
+        payload:Object.assign({t_ms:Date.now()-ANALYTICS_T0,ver:ANALYTICS_VER},payload||{})
       }),
       keepalive:true
     }).catch(()=>{})

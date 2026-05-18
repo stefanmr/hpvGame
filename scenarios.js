@@ -10,16 +10,23 @@
      desc  — kratak opis koji roditelj "vidi" u kontekstu
 
    STRUKTURA HCP_SCENARIOS — svaki scenario:
-     title  — naslov scenarija (prikazan u pick ekranu i u igri)
-     root   — attitude root po Fasce et al. (2023) taksonomiji;
-              prikazan samo lekarima u korak-1 feedback-u
-     parent — {i: inicijali za avatar, l: label ispod avatara}
-     open   — prva rečenica roditelja koja otvara razgovor
-     steps  — niz od 4 koraka (vidi STRUKTURA KORAKA ispod)
-     eGood  — završna rečenica roditelja ako je trust ≥ 70
-     eMid   — završna rečenica roditelja ako je trust 40–69
-     eBad   — završna rečenica roditelja ako je trust < 40
-     take   — "pouka" prikazana lekaru na kraju scenarija
+     title       — naslov scenarija (prikazan u pick ekranu i u igri)
+     root        — attitude root po Fasce et al. (2023) taksonomiji;
+                   prikazan samo lekarima u korak-1 feedback-u
+     startTrust  — početni skor poverenja (0–100). Default 50 ako izostavljeno.
+     startWill   — početna spremnost na vakcinaciju (0–100). Default 30.
+     startWhy    — kratak (1 rečenica) opis zašto baš ti početni skorovi —
+                   prikazuje se igraču pre prvog koraka.
+     maxWhy      — kratak (1 rečenica) opis zašto plafon scenarija nije 100
+                   ni pri savršenom razgovoru. Prikazuje se na kraju, uz
+                   "Krajnji rezultat X / Y" blok.
+     parent      — {i: inicijali za avatar, l: label ispod avatara}
+     open        — prva rečenica roditelja koja otvara razgovor
+     steps       — niz od 4 koraka (vidi STRUKTURA KORAKA ispod)
+     eGood       — završna rečenica roditelja ako je trust ≥ 70
+     eMid        — završna rečenica roditelja ako je trust 40–69
+     eBad        — završna rečenica roditelja ako je trust < 40
+     take        — "pouka" prikazana lekaru na kraju scenarija
 
    STRUKTURA KORAKA (steps[]):
      t  — tip koraka; jedan od: "root" | "affirm" | "refute" | "facts"
@@ -54,7 +61,7 @@ const HCP_PROFILES=[
 ];
 
 const HCP_SCENARIOS=[
-{title:"Aluminijum i fetalne ćelije",root:"Strah i fobije — toksičnost (HPV)",parent:{i:"M",l:"Majka · ćerka 13 god."},open:"Doktore, čitala sam na internetu da HPV vakcina sadrži aluminijum i ostatke fetalnih ćelija. Bojim se da to može da uškodi mom detetu. Ne želim da unosim toksine u njeno mlado telo.",steps:[
+{title:"Aluminijum i fetalne ćelije",startTrust:45,startWill:25,startWhy:"Majka već čita internet i uplašena je od konkretnih supstanci — došla je da je lekar smiri, ali ulazi sa otporom.",maxWhy:"Marija je nedeljama tonula u internet sumnje; jedan razgovor može da pomeri planinu, ali ne i da je sruši.",root:"Strah i fobije — toksičnost (HPV)",parent:{i:"M",l:"Majka · ćerka 13 god."},open:"Doktore, čitala sam na internetu da HPV vakcina sadrži aluminijum i ostatke fetalnih ćelija. Bojim se da to može da uškodi mom detetu. Ne želim da unosim toksine u njeno mlado telo.",steps:[
 {t:"root",p:"Pre odgovora — koji 'attitude root' prepoznajete?",o:[
 {x:"Konspirativna ideja — Big Pharma krije istinu",ok:0,fb:"Argument ne pominje farmaceutske kompanije ili zaveru — emocija je <strong>strah od konkretnih supstanci</strong>, ne sumnja u motiv."},
 {x:"Strah i fobije — toksičnost sastojaka",ok:1,fb:"Tačno. Roditelj imenuje konkretne 'toksične' supstance. Klasičan obrazac iz Fasce et al. (2023) — <strong>fear and phobias / toxicity hazard</strong>."},
@@ -72,7 +79,7 @@ const HCP_SCENARIOS=[
 {q:"neutral",x:"Sve vakcine se temeljno testiraju pre upotrebe.",fb:"Tačno, ali nedovoljno specifično."}]}
 ],eGood:"Hvala što ste mi to objasnili na ovaj način. Uznemirila sam se od onoga što sam čitala. Razmisliću.",eMid:"Dobro, čula sam šta ste rekli. Razmisliću još.",eBad:"Hvala doktore. Pričaću sa drugima.",take:"Strah od toksičnosti neutrališe se <strong>konkretnim uporednim merama</strong> — ne uopštenom tvrdnjom 'bezbedno je'."},
 
-{title:"Farmaceutske kompanije zarađuju milijarde",root:"Konspirativna ideja — Big Pharma",parent:{i:"O",l:"Otac · sin 12 god."},open:"Doktore, jasno mi je da farmaceutske kompanije zarađuju milijarde od ovih vakcina. Zar nije sumnjivo što baš sada toliko forsiraju HPV vakcinu, čak i za dečake? Sigurno postoji nešto što nam ne govore.",steps:[
+{title:"Farmaceutske kompanije zarađuju milijarde",startTrust:35,startWill:20,startWhy:"Otac sumnja u motiv institucija — nije a priori protiv vakcine, ali ne veruje preporukama bez sopstvene provere.",maxWhy:"Stav prema farmaceutskoj industriji nije razgovor, već decenijski pogled na svet — najbolje što jedan razgovor može je da otvori vrata.",root:"Konspirativna ideja — Big Pharma",parent:{i:"O",l:"Otac · sin 12 god."},open:"Doktore, jasno mi je da farmaceutske kompanije zarađuju milijarde od ovih vakcina. Zar nije sumnjivo što baš sada toliko forsiraju HPV vakcinu, čak i za dečake? Sigurno postoji nešto što nam ne govore.",steps:[
 {t:"root",p:"Korak 1 · Koji je psihološki koren?",o:[
 {x:"Konspirativna ideja — Big Pharma",ok:1,fb:"Tačno. Pretpostavlja <strong>skriveni motiv profita</strong> i da postoji 'nešto što nam ne govore' — klasičan obrazac konspirativne ideacije."},
 {x:"Distortovana percepcija rizika",ok:0,fb:"Ne osporava rizik — sumnja u <em>motiv</em> onih koji preporučuju vakcinu."},
@@ -90,7 +97,7 @@ const HCP_SCENARIOS=[
 {q:"neutral",x:"Statistike pokazuju koliko je korisno.",fb:"Bez konkretnih brojeva, samo tvrdjenje."}]}
 ],eGood:"Hmm... nisam znao za to o raku grla. Razmisliću ozbiljno.",eMid:"Razmisliću. Treba mi vremena.",eBad:"Hvala, ali ostajem pri svom.",take:"Konspirativna ideacija se <strong>ne pobeđuje suprotnim autoritetom</strong> — pobeđuje se aliranjem sa skepticizmom."},
 
-{title:"Ne želim joj slati pogrešnu poruku",root:"Moralne brige — promiskuitetnost (HPV)",parent:{i:"M",l:"Majka · ćerka 12 god."},open:"Moja ćerka ima samo 12 godina, ne radi se još o seksu. Bojim se da bi davanje vakcine protiv polno prenosive bolesti poslalo poruku da je u redu rano početi sa seksom. To nije poruka koju joj želim slati.",steps:[
+{title:"Ne želim joj slati pogrešnu poruku",startTrust:55,startWill:15,startWhy:"Majka veruje lekaru kao stručnjaku, ali njena pozicija je principijelna — vakcina je za nju moralno pitanje, ne medicinsko.",maxWhy:"Visok plafon: ovo nije osoba bez poverenja u lekara, već osoba sa principima — kad oseti poštovanje prema vrednostima, otvara se brzo.",root:"Moralne brige — promiskuitetnost (HPV)",parent:{i:"M",l:"Majka · ćerka 12 god."},open:"Moja ćerka ima samo 12 godina, ne radi se još o seksu. Bojim se da bi davanje vakcine protiv polno prenosive bolesti poslalo poruku da je u redu rano početi sa seksom. To nije poruka koju joj želim slati.",steps:[
 {t:"root",p:"Korak 1 · Koren stava?",o:[
 {x:"Moralne brige — promiskuitetnost",ok:1,fb:"Majka eksplicitno govori o 'porukama' i vrednostima — <strong>moralna pozicija</strong>."},
 {x:"Distortovana percepcija rizika",ok:0,fb:"Ne osporava rizik — ne želi da implicitno odobri ponašanje."},
@@ -108,7 +115,7 @@ const HCP_SCENARIOS=[
 {q:"neutral",x:"Vakcina je efikasna kada se da na vreme.",fb:"Bez konteksta — ne pomera razgovor."}]}
 ],eGood:"Hvala. Razumem sada zašto se daje u ovim godinama. Razgovaraću sa ćerkom — ne kao o 'seksu' nego kao o zaštiti.",eMid:"Vidim... ima logike. Pričaću sa mužem.",eBad:"Razmisliću.",take:"Moralne brige se ne pobeđuju moralnim demantijem. Pobeđuju se <em>premapiranjem</em> — pokazujući da vakcina ne ugrožava vrednosti, već ih čuva."},
 
-{title:"HPV se prolazi sam — zašto vakcinisati?",root:"Distortovana percepcija rizika (HPV)",parent:{i:"O",l:"Otac · ćerka 14 god."},open:"Pa dobro, HPV — zar nije to nešto što se prolazi? Većina ljudi se zarazi, ne zna ni da ga ima, i prođe. Zašto bismo mi vakcinisali zdravo dete protiv nečega što verovatno neće biti problem?",steps:[
+{title:"HPV se prolazi sam — zašto vakcinisati?",startTrust:50,startWill:25,startWhy:"Otac racionalno procenjuje rizik — pristojno poverenje u lekara, ali ne vidi razlog da intervencijom dira zdravo dete.",maxWhy:"Racionalan pristup je tvoj saveznik, ali emocionalna komponenta brige za dete uvek ostavlja prostor za rezervu.",root:"Distortovana percepcija rizika (HPV)",parent:{i:"O",l:"Otac · ćerka 14 god."},open:"Pa dobro, HPV — zar nije to nešto što se prolazi? Većina ljudi se zarazi, ne zna ni da ga ima, i prođe. Zašto bismo mi vakcinisali zdravo dete protiv nečega što verovatno neće biti problem?",steps:[
 {t:"root",p:"Korak 1 · Koren stava?",o:[
 {x:"Distortovana percepcija rizika",ok:1,fb:"Argument je 'rizik nije dovoljan da opravda intervenciju' — obrazac iz korena <strong>distorted risk perception</strong>."},
 {x:"Neutemeljena uverenja — prirodno je najbolje",ok:0,fb:"Ne kaže da je prirodno bolje — kaže da rizik nije veliki. Razlika u nijansi."},
@@ -126,7 +133,7 @@ const HCP_SCENARIOS=[
 {q:"neutral",x:"Brojevi pokazuju da je važno.",fb:"Bez specifika, samo opšta tvrdnja."}]}
 ],eGood:"Hm. Nisam znao da je toliko. Razgovaraću sa ćerkom — ima 14, već može da razume.",eMid:"Razmisliću još. Pričaću sa ženom.",eBad:"Ja i dalje mislim da je previše brige za malu šansu.",take:"Niska percepcija rizika pobeđuje se <strong>kalibracijom</strong>: priznati istinu i precizirati ko nije u toj većini."},
 
-{title:"Previše vakcina, prirodno je bolje",root:"Neutemeljena uverenja — prirodno (opšte)",parent:{i:"M",l:"Majka · sin 13 god."},open:"Doktore, ja se trudim da moja deca žive prirodno — što manje lekova. Imam utisak da im dajemo previše vakcina, premnogo, prerano. Telo bi trebalo da nauči samo da se brani.",steps:[
+{title:"Previše vakcina, prirodno je bolje",startTrust:40,startWill:20,startWhy:"Majka ima ideološku poziciju prema medicini — manji a priori trust u 'sistem' lekova; pristup tela kao prirodnog branioca.",maxWhy:"Ideologija prirodnosti je deo identiteta — razgovor može da je relativizuje, ali ne i da preokrene poziciju izgrađenu kroz godine.",root:"Neutemeljena uverenja — prirodno (opšte)",parent:{i:"M",l:"Majka · sin 13 god."},open:"Doktore, ja se trudim da moja deca žive prirodno — što manje lekova. Imam utisak da im dajemo previše vakcina, premnogo, prerano. Telo bi trebalo da nauči samo da se brani.",steps:[
 {t:"root",p:"Korak 1 · Koren stava?",o:[
 {x:"Neutemeljena uverenja — prirodno je najbolje",ok:1,fb:"Kombinacija <em>natural is best</em> i <em>overmedicalization</em>. To je <strong>ideologija prirodnosti</strong>."},
 {x:"Distortovana percepcija rizika",ok:0,fb:"Ne osporava bolesti — ima drugačiji pogled na <em>kako</em> telo treba da se bori."},
@@ -144,7 +151,7 @@ const HCP_SCENARIOS=[
 {q:"neutral",x:"Vakcine su efikasna mera javnog zdravlja.",fb:"Apstraktno — ne menja lični okvir."}]}
 ],eGood:"Zanimljivo... nisam tako razmišljala. Razmisliću.",eMid:"Razgovaraćemo opet. Treba mi vreme.",eBad:"Mi ćemo i dalje birati prirodne metode.",take:"'Prirodno je bolje' pobeđuje se <strong>premapiranjem</strong>: vakcina nije <em>protiv</em> imuniteta, već <em>partner</em>."},
 
-{title:"Čula sam za devojčice koje su imale teške reakcije",root:"Strah i fobije — strašne povrede (HPV)",parent:{i:"M",l:"Majka · ćerka 12 god."},open:"Čitala sam priče o devojčicama koje su nakon HPV vakcine imale ozbiljne neurološke probleme, autoimune bolesti, čak i neplodnost. Ne mogu da rizikujem da se to desi mojoj ćerki.",steps:[
+{title:"Čula sam za devojčice koje su imale teške reakcije",startTrust:45,startWill:10,startWhy:"Majka je preplašena anegdotama o teškim ishodima — opšte poverenje u lekara je pristojno, ali volja za baš ovu vakcinu je vrlo niska.",maxWhy:"Strah od konkretnih anegdota se umiruje, ne briše — sledeća prijateljičina priča će ga ponovo aktivirati.",root:"Strah i fobije — strašne povrede (HPV)",parent:{i:"M",l:"Majka · ćerka 12 god."},open:"Čitala sam priče o devojčicama koje su nakon HPV vakcine imale ozbiljne neurološke probleme, autoimune bolesti, čak i neplodnost. Ne mogu da rizikujem da se to desi mojoj ćerki.",steps:[
 {t:"root",p:"Korak 1 · Koren stava?",o:[
 {x:"Strah i fobije — strašne povrede",ok:1,fb:"Imenuje konkretne <strong>katastrofalne ishode</strong> — <em>dreadful injuries</em> obrazac."},
 {x:"Konspirativna ideja",ok:0,fb:"Ne pominje skriveni motiv. Primarna emocija je <strong>strah</strong>."},
@@ -162,7 +169,7 @@ const HCP_SCENARIOS=[
 {q:"neutral",x:"Vakcina je proverena na milionima ljudi.",fb:"Ne preokreće specifičan strah."}]}
 ],eGood:"Nisam to znala — da konizacija može da utiče na trudnoću. To je nešto što ću proveriti.",eMid:"Razmisliću, ali još uvek imam strepnju.",eBad:"Ne mogu da rizikujem.",take:"Strah od katastrofe pobeđuje se <strong>preokretom narativa</strong>: vakcina brani baš ono što roditelj brani."},
 
-{title:"Uradio sam svoje istraživanje",root:"Nepoverenje — do your own research",parent:{i:"O",l:"Otac · ćerka 11 god."},open:"Doktore, sa svim dužnim poštovanjem — ja sam uradio svoje istraživanje. Čitao sam različite izvore, ne samo zvanične. Vi lekari ste obučeni u jednom okviru, a postoje i drugi pogledi. Ja moram sam da donesem odluku za svoje dete.",steps:[
+{title:"Uradio sam svoje istraživanje",startTrust:35,startWill:25,startWhy:"Otac vrednuje sopstvene izvore jednako kao stručnu literaturu — nizak a priori trust prema lekarskoj ekspertizi specifično.",maxWhy:"Autonomija je suština njegovog stava — može da prihvati kvalitet razgovora, ali 'potpuno poverenje iz prve' nije njegov mod.",root:"Nepoverenje — do your own research",parent:{i:"O",l:"Otac · ćerka 11 god."},open:"Doktore, sa svim dužnim poštovanjem — ja sam uradio svoje istraživanje. Čitao sam različite izvore, ne samo zvanične. Vi lekari ste obučeni u jednom okviru, a postoje i drugi pogledi. Ja moram sam da donesem odluku za svoje dete.",steps:[
 {t:"root",p:"Korak 1 · Koren stava?",o:[
 {x:"Nepoverenje — 'uradi svoje istraživanje'",ok:1,fb:"Sopstveno istraživanje kao <strong>jednakovredno</strong> stručnoj literaturi."},
 {x:"Konspirativna ideja",ok:0,fb:"Ne tvrdi da postoji zavera."},
@@ -180,7 +187,7 @@ const HCP_SCENARIOS=[
 {q:"neutral",x:"Studije pokazuju da vakcina radi.",fb:"Bez izvora — nije bolje od alternativnih sajtova."}]}
 ],eGood:"Hvala. Ovo je prvi put da neko nije pokušao da me ubedi — već da mi pokaže izvore.",eMid:"Razmisliću.",eBad:"Nastaviću sa svojim istraživanjem.",take:"'Uradi svoje istraživanje' nije ignoranca — to je <strong>autonomija</strong>. Nikada ne osporavajte; <em>obučite je</em>."},
 
-{title:"Moje dete, moja odluka",root:"Pogled na svet — libertarijanizam",parent:{i:"M",l:"Majka · ćerka 14 god."},open:"Doktore, ovo nije pitanje vakcine — ovo je pitanje slobode. Posle COVID-a izgubila sam poverenje u to kako država i medicinski sistem rade. Moje dete, moja odluka. Ne želim da iko spolja diktira.",steps:[
+{title:"Moje dete, moja odluka",startTrust:30,startWill:15,startWhy:"Posle COVID-a izgubila je poverenje u zdravstveni sistem — najniži start na obe ose; libertarijanski koren se dodatno pogoršava pritiskom.",maxWhy:"Post-COVID erozija poverenja u sistem se ne rešava jednim razgovorom — najviše što možeš je da budeš čovek na koga može da se vrati.",root:"Pogled na svet — libertarijanizam",parent:{i:"M",l:"Majka · ćerka 14 god."},open:"Doktore, ovo nije pitanje vakcine — ovo je pitanje slobode. Posle COVID-a izgubila sam poverenje u to kako država i medicinski sistem rade. Moje dete, moja odluka. Ne želim da iko spolja diktira.",steps:[
 {t:"root",p:"Korak 1 · Koren stava?",o:[
 {x:"Pogled na svet — libertarijanizam",ok:1,fb:"Eksplicitno govori o <strong>slobodi izbora</strong> i odbijanju spoljnog uticaja."},
 {x:"Konspirativna ideja",ok:0,fb:"Nema implikacije skrivene namere — opšte odbijanje kontrole."},

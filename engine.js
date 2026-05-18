@@ -20,6 +20,7 @@ let S={
   hcpStepIdx:0,
   trust:50,will:30,
   hcpResults:[],
+  hcpScenarioLog:[],
   totalRoots:0,totalGood:0,
   personaIdx:null,
   pSceneIdx:0,
@@ -103,13 +104,18 @@ const HCP_IMPACT={
 function clamp(v){return Math.max(0,Math.min(100,v))}
 
 function startHcpScenario(idx){
+  const sc=HCP_SCENARIOS[idx];
   S.hcpScenarioIdx=idx;
   S.hcpStepIdx=0;
-  S.trust=50;S.will=30;
+  S.trust=sc.startTrust??50;
+  S.will=sc.startWill??30;
+  S.hcpScenarioLog=[];
   track("hcp_scenario_start",{
     scenarioIdx:idx,
-    title:HCP_SCENARIOS[idx].title,
-    profile:S.hcpProfile
+    title:sc.title,
+    profile:S.hcpProfile,
+    startTrust:S.trust,
+    startWill:S.will
   });
   showScreen("hcp-game");
   renderHcpPips();
@@ -149,11 +155,21 @@ function showDelta(id,v){
   setTimeout(()=>e.classList.remove("show"),2400)
 }
 
+function impactPills(deltas){
+  const pills=deltas.filter(([_,v])=>v).map(([lbl,v])=>{
+    const sign=v>0?"+":"";
+    const cls=v>0?"pos":"neg";
+    return `<span class="fb-pill ${cls}">${sign}${v} ${lbl}</span>`
+  });
+  return pills.length?`<div class="fb-impact">${pills.join("")}</div>`:""
+}
+
 function renderHcpScenarioCard(){
   const sc=HCP_SCENARIOS[S.hcpScenarioIdx];
   document.getElementById("hcpScnLbl").innerHTML=`Scenario · <strong>${String(S.hcpScenarioIdx+1).padStart(2,'0')} / ${String(HCP_SCENARIOS.length).padStart(2,'0')}</strong>`;
   const card=document.getElementById("hcpCard");
-  card.innerHTML=`<div class="scn-hdr fade-in"><div class="scn-num">Scenario ${String(S.hcpScenarioIdx+1).padStart(2,'0')}</div><h2 class="scn-title">${sc.title}</h2></div><div class="bubble parent fade-in"><div class="bubble-meta"><div class="avatar parent">${sc.parent.i}</div><div class="bubble-label">${sc.parent.l}</div></div><div class="speech">${sc.open}</div></div><div id="hcpStepWrap"></div>`;
+  const startNote=sc.startWhy?`<div class="start-note fade-in"><div class="start-note-lbl">Polazna pozicija</div><div class="start-note-vals">Poverenje <strong>${sc.startTrust??50}</strong> &nbsp;·&nbsp; Spremnost <strong>${sc.startWill??30}</strong></div><div class="start-note-why">${sc.startWhy}</div></div>`:"";
+  card.innerHTML=`<div class="scn-hdr fade-in"><div class="scn-num">Scenario ${String(S.hcpScenarioIdx+1).padStart(2,'0')}</div><h2 class="scn-title">${sc.title}</h2></div><div class="bubble parent fade-in"><div class="bubble-meta"><div class="avatar parent">${sc.parent.i}</div><div class="bubble-label">${sc.parent.l}</div></div><div class="speech">${sc.open}</div></div>${startNote}<div id="hcpStepWrap"></div>`;
   renderHcpStep()
 }
 
@@ -198,10 +214,21 @@ function pickHcpChoice(idx,btn){
 
   S.hcpAttempts=(S.hcpAttempts||0)+1;
 
+  if(!S.hcpScenarioLog)S.hcpScenarioLog=[];
+  S.hcpScenarioLog.push({
+    stepIdx:S.hcpStepIdx,
+    stepType:step.t,
+    choiceIdx:idx,
+    quality:q,
+    dt:dt,dw:dw,
+    attemptIdx:S.hcpAttempts
+  });
+
   const lblMap={good:"Odlično",neutral:"Funkcionalno — probajte da pronađete bolji odgovor",bad:"Rizično — pokušajte drugi odgovor"};
   const fLbl=step.t==="root"?(opt.ok?"Tačno":"Nije tačno — pokušajte ponovo"):lblMap[opt.q];
   const nextBtn=isCorrect?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
-  document.getElementById(`hcpFb-${S.hcpStepIdx}`).innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div><div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
+  const impactBlock=impactPills([["Poverenje",dt],["Spremnost",dw]]);
+  document.getElementById(`hcpFb-${S.hcpStepIdx}`).innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div>${impactBlock}<div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
   renderHcpMeters(1,dt,dw);
   track("hcp_choice",{
     scenarioIdx:S.hcpScenarioIdx,
@@ -225,6 +252,84 @@ function nextHcpStep(){
   else finishHcpScenario()
 }
 
+function computeHcpMax(sc){
+  // best deltas per step: root +5, affirm +15, refute +10t +20w, facts +5t +20w
+  const startT=sc.startTrust??50;
+  const startW=sc.startWill??30;
+  return {maxTrust:Math.min(100,startT+35),maxWill:Math.min(100,startW+40)}
+}
+
+function capPairCls(achieved,max){
+  if(achieved>=max)return "pos";
+  if(max>0&&achieved<max*0.5)return "neg";
+  return "neu"
+}
+
+function renderHcpReview(){
+  const sc=HCP_SCENARIOS[S.hcpScenarioIdx];
+  const labels=["Eliciraj","Afirmišite","Opovrgnite","Činjenice"];
+  const log=S.hcpScenarioLog||[];
+  if(!log.length)return "";
+  const byStep=[[],[],[],[]];
+  log.forEach(e=>{if(byStep[e.stepIdx])byStep[e.stepIdx].push(e)});
+  const {maxTrust,maxWill}=computeHcpMax(sc);
+  const finalT=Math.round(S.trust);
+  const finalW=Math.round(S.will);
+  const tCls=capPairCls(finalT,maxTrust);
+  const wCls=capPairCls(finalW,maxWill);
+  const maxWhyHtml=sc.maxWhy?`<div class="review-cap-why"><strong>Zašto plafon nije 100?</strong> ${sc.maxWhy}</div>`:"";
+  const capHtml=`<div class="review-cap"><div class="review-cap-lbl">Krajnji rezultat</div><div class="review-cap-vals"><span class="cap-pair ${tCls}">Poverenje <strong>${finalT}</strong> / ${maxTrust}</span><span class="cap-pair ${wCls}">Spremnost <strong>${finalW}</strong> / ${maxWill}</span></div>${maxWhyHtml}</div>`;
+  let html='<div class="review fade-in"><h3 class="review-title">Pregled tvojih izbora</h3>'+capHtml;
+  for(let i=0;i<sc.steps.length;i++){
+    const step=sc.steps[i];
+    const attempts=byStep[i];
+    if(!attempts.length)continue;
+    const multi=attempts.length>1;
+    html+=`<div class="review-step"><div class="review-step-hdr"><span class="step-num">Korak ${String(i+1).padStart(2,'0')}</span><span class="step-tag">${labels[i]}</span>${multi?`<span class="review-attempts">${attempts.length} pokušaja</span>`:''}</div>`;
+    attempts.forEach((a,j)=>{
+      const ok=a.quality==="good";
+      const cls=ok?"pos":"neg";
+      const opt=step.o[a.choiceIdx];
+      if(!opt)return;
+      const pills=impactPills([["Poverenje",a.dt],["Spremnost",a.dw]]);
+      html+=`<div class="review-attempt ${cls}">${multi?`<div class="review-attempt-num">Pokušaj ${j+1}</div>`:''}<div class="review-attempt-hdr"><span class="review-icon ${cls}">${ok?'✓':'✗'}</span><span class="review-opt">«${opt.x}»</span></div>${pills}<div class="review-fb">${opt.fb}</div></div>`;
+    });
+    if(i===0&&attempts.length){
+      const last=attempts[attempts.length-1];
+      if(last.quality!=="good"){
+        const correctOpt=step.o.find(o=>o.ok);
+        if(correctOpt)html+=`<div class="review-correct"><strong>Tačan koren je bio:</strong> «${correctOpt.x}»</div>`;
+      }
+    }
+    html+='</div>';
+  }
+  html+='</div>';
+  return html
+}
+
+function renderPParentReview(){
+  const p=PERSONAS[S.personaIdx];
+  const choices=S.pChoices||[];
+  if(!choices.length)return "";
+  let html='<div class="review fade-in"><h3 class="review-title">Pregled tvojih izbora</h3>';
+  choices.forEach(ch=>{
+    const scene=p.scenes[ch.sceneIdx];
+    if(!scene)return;
+    const imp=ch.imp||{};
+    const pills=impactPills([
+      ["Anksioznost",imp.anks||0],
+      ["Saslušanost",imp.sas||0],
+      ["Otvorenost",imp.otv||0],
+      ["Prihvatanje",imp.dec||0]
+    ]);
+    const inner=ch.inner||"";
+    const re=ch.re||"";
+    html+=`<div class="review-step"><div class="review-step-hdr"><span class="step-num">Scena ${String(ch.sceneIdx+1).padStart(2,'0')}</span><span class="step-tag">${scene.title}</span></div><div class="review-opt-em">${ch.em||""}</div>${inner?`<div class="review-opt-in">«${inner}»</div>`:''}${pills}${re?`<div class="review-fb"><em>${re}</em></div>`:''}</div>`;
+  });
+  html+='</div>';
+  return html
+}
+
 function finishHcpScenario(){
   const sc=HCP_SCENARIOS[S.hcpScenarioIdx];
   let ending,tone,outcome;
@@ -245,9 +350,9 @@ function finishHcpScenario(){
   const wrap=document.getElementById("hcpStepWrap");
   const div=document.createElement("div");
   div.className="fade-in";
-  div.innerHTML=`<div style="background:var(--cream-warm);padding:28px 26px;margin-top:20px;border-left:3px solid var(--teal)"><div style="font-family:'Fraunces',serif;font-style:italic;color:var(--coral);font-size:13px;margin-bottom:8px">Kraj razgovora</div><h3 style="font-family:'Fraunces',serif;font-size:24px;color:var(--teal-deep);line-height:1.2;margin-bottom:14px;font-weight:500">${tone}</h3><div class="bubble parent" style="margin-top:14px"><div class="bubble-meta"><div class="avatar parent">${sc.parent.i}</div><div class="bubble-label">${sc.parent.l}</div></div><div class="speech">${ending}</div></div><div style="margin-top:18px;font-size:15px;color:var(--ink-soft);line-height:1.55"><strong style="color:var(--teal)">Pouka:</strong> ${sc.take}</div><div class="next-wrap"><button class="btn btn-primary" onclick="returnToHcpPick()">Nazad na scenarije <span class="arrow">→</span></button></div></div>`;
+  div.innerHTML=`<div style="background:var(--cream-warm);padding:28px 26px;margin-top:20px;border-left:3px solid var(--teal)"><div style="font-family:'Fraunces',serif;font-style:italic;color:var(--coral);font-size:13px;margin-bottom:8px">Kraj razgovora</div><h3 style="font-family:'Fraunces',serif;font-size:24px;color:var(--teal-deep);line-height:1.2;margin-bottom:14px;font-weight:500">${tone}</h3><div class="bubble parent" style="margin-top:14px"><div class="bubble-meta"><div class="avatar parent">${sc.parent.i}</div><div class="bubble-label">${sc.parent.l}</div></div><div class="speech">${ending}</div></div><div style="margin-top:18px;font-size:15px;color:var(--ink-soft);line-height:1.55"><strong style="color:var(--teal)">Pouka:</strong> ${sc.take}</div>${renderHcpReview()}<div class="next-wrap"><button class="btn btn-primary" onclick="returnToHcpPick()">Nazad na scenarije <span class="arrow">→</span></button></div></div>`;
   wrap.appendChild(div);
-  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
+  setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),150);
   saveState()
 }
 
@@ -338,7 +443,8 @@ function renderPersonaIntro(){
   const p=PERSONAS[S.personaIdx];
   document.getElementById("pSceneHint").textContent="Pre razgovora";
   renderPPips();
-  document.getElementById("pCard").innerHTML=`<div class="intro-card fade-in"><div class="intro-eb">Lik ${String(S.personaIdx+1).padStart(2,'0')}</div><h2 class="intro-name">${p.name}</h2><div class="intro-tag">«${p.tag}»</div><div class="intro-text">${p.intro.map(par=>'<p>'+par+'</p>').join("")}</div><div class="intro-state"><strong>Tvoje stanje sad:</strong> Anksioznost ${p.start.anks} · Saslušanost ${p.start.sas} · Otvorenost ${p.start.otv} · Prihvatanje vakcinacije ${p.start.dec!=null?p.start.dec:20}<br><small style="color:var(--ink-muted)">Tvoji izbori menjaju ove mere. Cilj nije «pobeda» — već iskreni odgovor onome šta lik oseća.</small></div><div class="next-wrap"><button class="btn btn-coral" onclick="startPScene(0)">Ulazak u ordinaciju <span class="arrow">→</span></button></div></div>`
+  const why=p.startWhy?`<div class="intro-state-why"><em>${p.startWhy}</em></div>`:"";
+  document.getElementById("pCard").innerHTML=`<div class="intro-card fade-in"><div class="intro-eb">Lik ${String(S.personaIdx+1).padStart(2,'0')}</div><h2 class="intro-name">${p.name}</h2><div class="intro-tag">«${p.tag}»</div><div class="intro-text">${p.intro.map(par=>'<p>'+par+'</p>').join("")}</div><div class="intro-state"><strong>Tvoje stanje sad:</strong> Anksioznost ${p.start.anks} · Saslušanost ${p.start.sas} · Otvorenost ${p.start.otv} · Prihvatanje vakcinacije ${p.start.dec!=null?p.start.dec:20}${why}<br><small style="color:var(--ink-muted)">Tvoji izbori menjaju ove mere. Cilj nije «pobeda» — već iskreni odgovor onome šta lik oseća.</small></div><div class="next-wrap"><button class="btn btn-coral" onclick="startPScene(0)">Ulazak u ordinaciju <span class="arrow">→</span></button></div></div>`
 }
 
 function scrollToCard(){
@@ -401,7 +507,8 @@ function pickPChoice(idx){
   if(c.imp.dec)S.odluka=clamp(S.odluka+c.imp.dec);
 
   if(c.unlock)S.pPath.push(c.unlock);
-  S.pChoices.push({sceneIdx:S.pSceneIdx,choiceIdx:idx,em:c.em});
+  const dA=S.anks-prevA,dS=S.sas-prevS,dO=S.otv-prevO,dD=S.odluka-prevD;
+  S.pChoices.push({sceneIdx:S.pSceneIdx,choiceIdx:idx,em:c.em,inner:c.in,re:c.re,imp:{anks:dA,sas:dS,otv:dO,dec:dD}});
 
   if(c.end)S.pEnding=c.end;
 
@@ -412,10 +519,12 @@ function pickPChoice(idx){
     if(cText===c.em)b.classList.add("sel")
   });
 
-  // show reaction
-  document.getElementById("pFb").innerHTML=`<div class="fb"><div class="fb-lbl" style="color:var(--coral)">U tebi se događa</div><div class="fb-text"><em>${c.re}</em></div></div><div class="next-wrap"><button class="btn btn-coral" onclick="nextPScene()">${S.pSceneIdx<p.scenes.length-1?'Sledeća scena':'Izlazak iz ordinacije'} <span class="arrow">→</span></button></div>`;
+  const impactBlock=impactPills([["Anksioznost",dA],["Saslušanost",dS],["Otvorenost",dO],["Prihvatanje",dD]]);
 
-  renderPParentMeters(1,S.anks-prevA,S.sas-prevS,S.otv-prevO,S.odluka-prevD);
+  // show reaction
+  document.getElementById("pFb").innerHTML=`<div class="fb"><div class="fb-lbl" style="color:var(--coral)">U tebi se događa</div>${impactBlock}<div class="fb-text"><em>${c.re}</em></div></div><div class="next-wrap"><button class="btn btn-coral" onclick="nextPScene()">${S.pSceneIdx<p.scenes.length-1?'Sledeća scena':'Izlazak iz ordinacije'} <span class="arrow">→</span></button></div>`;
+
+  renderPParentMeters(1,dA,dS,dO,dD);
   track("parent_choice",{
     personaIdx:S.personaIdx,
     sceneIdx:S.pSceneIdx,
@@ -427,7 +536,7 @@ function pickPChoice(idx){
     unlock:c.unlock||null,
     endTrigger:c.end||null,
     anks:S.anks,sas:S.sas,otv:S.otv,odluka:S.odluka,
-    dAnks:S.anks-prevA,dSas:S.sas-prevS,dOtv:S.otv-prevO,dOdluka:S.odluka-prevD
+    dAnks:dA,dSas:dS,dOtv:dO,dOdluka:dD
   });
   setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
   saveState()
@@ -486,9 +595,9 @@ function finishPGame(selectedIdx){
   const card=document.querySelector(".end-card");
   const div=document.createElement("div");
   div.className="end-divider fade-in";
-  div.innerHTML=`<div class="end-narr">${e.close.map(line=>'<p>'+line+'</p>').join("")}</div><div class="end-final">${p.finalLine}</div><div class="next-wrap" style="margin-top:30px"><button class="btn btn-ghost" onclick="returnToPersonaPick()">Probaj drugog lika <span class="arrow">↻</span></button> <button class="btn btn-primary" onclick="goHome()">Početak <span class="arrow">→</span></button></div>`;
+  div.innerHTML=`<div class="end-narr">${e.close.map(line=>'<p>'+line+'</p>').join("")}</div><div class="end-final">${p.finalLine}</div>${renderPParentReview()}<div class="next-wrap" style="margin-top:30px"><button class="btn btn-ghost" onclick="returnToPersonaPick()">Probaj drugog lika <span class="arrow">↻</span></button> <button class="btn btn-primary" onclick="goHome()">Početak <span class="arrow">→</span></button></div>`;
   card.appendChild(div);
-  setTimeout(()=>window.scrollTo({top:document.body.scrollHeight,behavior:"smooth"}),150);
+  setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),150);
 
   // record completion
   if(!S.hcpCompletedScenarios)S.hcpCompletedScenarios=[]; // safety
