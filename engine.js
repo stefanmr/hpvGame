@@ -173,11 +173,14 @@ function renderHcpScenarioCard(){
   renderHcpStep()
 }
 
+const ERI_LABELS=["Eliciraj","Afirmišite","Opovrgnite","Činjenice"];
+const ERI_PHASE_KEYS=["eli","aff","ref","fac"];
+
 function renderHcpStep(){
   const sc=HCP_SCENARIOS[S.hcpScenarioIdx];
   const step=sc.steps[S.hcpStepIdx];
-  const labels=["Eliciraj","Afirmišite","Opovrgnite","Činjenice"];
-  document.getElementById("hcpStepHint").textContent=`Korak ${S.hcpStepIdx+1}/4 · ${labels[S.hcpStepIdx]}`;
+  const phase=ERI_PHASE_KEYS[S.hcpStepIdx];
+  document.getElementById("hcpStepHint").innerHTML=`Korak ${S.hcpStepIdx+1}/4 · <span class="bar-step-phase phase-${phase}">${ERI_LABELS[S.hcpStepIdx]}</span>`;
   renderHcpPips();
   const wrap=document.getElementById("hcpStepWrap");
   const div=document.createElement("div");
@@ -185,7 +188,7 @@ function renderHcpStep(){
   div.id=`hcp-step-${S.hcpStepIdx}`;
   S.hcpAttempts=0;
   const shuffledOpts=shuffle(step.o.map((opt,i)=>({...opt,_i:i})));
-  div.innerHTML=`<div class="step-eb"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${labels[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${shuffledOpts.map(opt=>`<button class="choice" onclick="pickHcpChoice(${opt._i},this)">${opt.x}</button>`).join("")}</div><div id="hcpFb-${S.hcpStepIdx}"></div>`;
+  div.innerHTML=`<div class="step-eb phase-${phase}"><span class="step-num">Korak ${String(S.hcpStepIdx+1).padStart(2,'0')}</span><span class="step-tag">${ERI_LABELS[S.hcpStepIdx]}</span></div><div class="prompt">${step.p}</div><div class="choices">${shuffledOpts.map(opt=>`<button class="choice" onclick="pickHcpChoice(${opt._i},this)">${opt.x}</button>`).join("")}</div><div id="hcpFb-${S.hcpStepIdx}"></div>`;
   wrap.appendChild(div);
   setTimeout(()=>div.scrollIntoView({behavior:"smooth",block:"start"}),60)
 }
@@ -267,7 +270,7 @@ function capPairCls(achieved,max){
 
 function renderHcpReview(){
   const sc=HCP_SCENARIOS[S.hcpScenarioIdx];
-  const labels=["Eliciraj","Afirmišite","Opovrgnite","Činjenice"];
+  const labels=ERI_LABELS;
   const log=S.hcpScenarioLog||[];
   if(!log.length)return "";
   const byStep=[[],[],[],[]];
@@ -285,7 +288,8 @@ function renderHcpReview(){
     const attempts=byStep[i];
     if(!attempts.length)continue;
     const multi=attempts.length>1;
-    html+=`<div class="review-step"><div class="review-step-hdr"><span class="step-num">Korak ${String(i+1).padStart(2,'0')}</span><span class="step-tag">${labels[i]}</span>${multi?`<span class="review-attempts">${attempts.length} pokušaja</span>`:''}</div>`;
+    const phase=ERI_PHASE_KEYS[i];
+    html+=`<div class="review-step phase-${phase}"><div class="review-step-hdr"><span class="step-num">Korak ${String(i+1).padStart(2,'0')}</span><span class="step-tag">${labels[i]}</span>${multi?`<span class="review-attempts">${attempts.length} pokušaja</span>`:''}</div>`;
     attempts.forEach((a,j)=>{
       const ok=a.quality==="good";
       const cls=ok?"pos":"neg";

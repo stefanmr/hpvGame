@@ -105,9 +105,35 @@ h2.title{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(28px,4.5vw
 .speech::before{content:"« ";color:var(--coral);font-style:normal}
 .speech::after{content:" »";color:var(--coral);font-style:normal}
 .bubble.doctor .speech::before,.bubble.doctor .speech::after{color:var(--plum)}
-.step-eb{display:flex;align-items:baseline;gap:10px;margin-bottom:8px}
-.step-num{font-family:'Fraunces',serif;font-style:italic;color:var(--coral);font-size:14px;font-weight:500}
-.step-tag{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-muted);font-weight:500}
+.step-eb{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.step-num{font-family:'Fraunces',serif;font-style:italic;color:var(--coral);font-size:17px;font-weight:500}
+.step-tag{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--coral);font-weight:700;padding:5px 12px;background:var(--cream-warm)}
+/* ERI phase color tokens — applied to .step-eb / .review-step / .bar-step-phase */
+.phase-eli .step-num,.phase-eli.step-eb .step-num{color:var(--coral)}
+.phase-aff .step-num,.phase-aff.step-eb .step-num{color:var(--teal)}
+.phase-ref .step-num,.phase-ref.step-eb .step-num{color:var(--gold)}
+.phase-fac .step-num,.phase-fac.step-eb .step-num{color:var(--plum)}
+.phase-eli .step-tag,.phase-eli.step-eb .step-tag{color:var(--coral)}
+.phase-aff .step-tag,.phase-aff.step-eb .step-tag{color:var(--teal)}
+.phase-ref .step-tag,.phase-ref.step-eb .step-tag{color:var(--gold)}
+.phase-fac .step-tag,.phase-fac.step-eb .step-tag{color:var(--plum)}
+.bar-step-phase{font-style:normal;font-weight:700;letter-spacing:.04em;font-family:'DM Sans',sans-serif;font-size:13px;text-transform:uppercase}
+.bar-step-phase.phase-eli{color:var(--coral)}
+.bar-step-phase.phase-aff{color:var(--teal)}
+.bar-step-phase.phase-ref{color:var(--gold)}
+.bar-step-phase.phase-fac{color:var(--plum)}
+/* Igra 02 framing intro */
+.g2-intro{background:var(--paper);border:1px solid var(--border);border-left:3px solid var(--coral);padding:22px 26px;margin:22px 0 26px}
+.g2-intro-h{font-family:'Fraunces',serif;font-size:20px;color:var(--teal-deep);font-weight:500;margin-bottom:14px;letter-spacing:-.01em}
+.g2-intro p{font-size:15px;line-height:1.6;color:var(--ink);margin-bottom:14px}
+.g2-intro p:last-child{margin-bottom:0}
+.g2-intro strong{color:var(--teal-deep)}
+.g2-intro-list{margin:0 0 14px 0;padding:0;list-style:none}
+.g2-intro-list li{font-size:14.5px;line-height:1.55;color:var(--ink-soft);padding:10px 0 10px 20px;position:relative;border-bottom:1px dashed var(--border)}
+.g2-intro-list li:last-child{border-bottom:none}
+.g2-intro-list li::before{content:"·";color:var(--coral);position:absolute;left:4px;font-weight:700;font-size:24px;line-height:1;top:6px}
+.g2-intro-list li strong{display:block;color:var(--teal-deep);margin-bottom:3px;font-weight:600}
+.g2-intro-meta{font-style:italic;color:var(--ink-muted);font-size:13.5px;font-family:'Fraunces',serif}
 .prompt{font-family:'Fraunces',serif;font-size:20px;line-height:1.3;color:var(--teal-deep);font-weight:500;margin-bottom:20px;letter-spacing:-.01em}
 /* ── CHOICES ── */
 .choices{display:flex;flex-direction:column;gap:10px}
@@ -158,6 +184,10 @@ h2.title{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(28px,4.5vw
 .review-step-hdr{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap}
 .review-step-hdr .step-num{font-family:'Fraunces',serif;font-style:italic;color:var(--coral);font-size:13px;font-weight:500}
 .review-step-hdr .step-tag{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--teal);font-weight:600;padding:2px 8px;background:var(--cream-warm)}
+.review-step.phase-eli .step-tag,.review-step.phase-eli .step-num{color:var(--coral)}
+.review-step.phase-aff .step-tag,.review-step.phase-aff .step-num{color:var(--teal-deep)}
+.review-step.phase-ref .step-tag,.review-step.phase-ref .step-num{color:var(--gold)}
+.review-step.phase-fac .step-tag,.review-step.phase-fac .step-num{color:var(--plum)}
 .review-attempts{font-size:11.5px;color:var(--ink-muted);letter-spacing:.04em;margin-left:auto}
 .review-attempt{padding-left:14px;border-left:2px solid var(--cream-warm);margin-bottom:14px}
 .review-attempt:last-child{margin-bottom:0}
