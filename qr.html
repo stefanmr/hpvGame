@@ -106,16 +106,33 @@ function deriveBase() {
 }
 baseEl.value = deriveBase();
 
+// Prefill from admin panel (admin builds custom URL with workshop + mode, opens qr.html#prefill=<encoded URL>)
+try {
+  const hash = location.hash || "";
+  const m = hash.match(/^#prefill=(.+)/);
+  if (m) {
+    const prefilled = decodeURIComponent(m[1]);
+    baseEl.value = prefilled;
+    const notice = document.createElement("div");
+    notice.style.cssText = "background:var(--cream-warm);padding:12px 14px;border-left:3px solid var(--coral);font-size:13px;color:var(--ink-soft);margin:10px 0 0;line-height:1.5";
+    notice.innerHTML = '<strong style="color:var(--coral)">URL prosleđen iz admin panela.</strong> Workshop ID i mode su već uključeni u baznom URL-u — workshop polje ispod ostaje prazno, pa se ne dodaje ponovo.';
+    baseEl.parentNode.insertBefore(notice, baseEl);
+  }
+} catch (e) {}
+
 function buildUrl() {
-  const base = baseEl.value.trim().replace(/\/$/, "");
+  const base = baseEl.value.trim();
+  if (!base) return "";
+  // If base already has query params, treat it as a ready URL (e.g. from admin prefill)
+  if (base.includes("?")) return base;
+  const baseClean = base.replace(/\/$/, "");
   const wid = (widEl.value || "").trim()
     .toLowerCase()
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
-  if (!base) return "";
-  if (!wid) return base + "/index.html";
-  return `${base}/index.html?w=${wid}`;
+  if (!wid) return baseClean + "/index.html";
+  return `${baseClean}/index.html?w=${wid}`;
 }
 
 async function render() {

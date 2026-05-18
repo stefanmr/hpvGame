@@ -14,6 +14,7 @@ const STORAGE_KEY="ondk_v2";
 let S={
   screen:"role",
   game:null,        // 'hcp' or 'parent'
+  mode:"retry",     // 'retry' (default) or 'sim' (no retry, locked-in choices)
   hcpProfile:null,
   hcpScenarioIdx:null,
   hcpCompletedScenarios:[],
@@ -207,11 +208,12 @@ function pickHcpChoice(idx,btn){
   const dt=S.trust-prevT,dw=S.will-prevW;
 
   const isCorrect=q==="good";
-  if(!isCorrect){
-    btn.disabled=true;
+  const isSimMode=S.mode==="sim";
+  if(isSimMode||isCorrect){
+    btn.closest(".choices").querySelectorAll(".choice").forEach(b=>b.disabled=true);
     btn.classList.add("sel",q);
   }else{
-    btn.closest(".choices").querySelectorAll(".choice").forEach(b=>b.disabled=true);
+    btn.disabled=true;
     btn.classList.add("sel",q);
   }
 
@@ -227,9 +229,13 @@ function pickHcpChoice(idx,btn){
     attemptIdx:S.hcpAttempts
   });
 
-  const lblMap={good:"Odlično",neutral:"Funkcionalno — probajte da pronađete bolji odgovor",bad:"Rizično — pokušajte drugi odgovor"};
-  const fLbl=step.t==="root"?(opt.ok?"Tačno":"Nije tačno — pokušajte ponovo"):lblMap[opt.q];
-  const nextBtn=isCorrect?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
+  const lblRetry={good:"Odlično",neutral:"Funkcionalno — probajte da pronađete bolji odgovor",bad:"Rizično — pokušajte drugi odgovor"};
+  const lblSim={good:"Odlično",neutral:"Funkcionalno — ali nije optimalno",bad:"Rizično — razgovor nastavlja sa posledicama"};
+  const lblMap=isSimMode?lblSim:lblRetry;
+  const rootLbl=isSimMode?(opt.ok?"Tačno":"Nije tačno — razgovor ide dalje"):(opt.ok?"Tačno":"Nije tačno — pokušajte ponovo");
+  const fLbl=step.t==="root"?rootLbl:lblMap[opt.q];
+  const showAdvance=isSimMode||isCorrect;
+  const nextBtn=showAdvance?`<div class="next-wrap"><button class="btn btn-primary" onclick="nextHcpStep()">${S.hcpStepIdx<sc.steps.length-1?"Sledeći korak":"Završi razgovor"} <span class="arrow">→</span></button></div>`:"";
   const impactBlock=impactPills([["Poverenje",dt],["Spremnost",dw]]);
   document.getElementById(`hcpFb-${S.hcpStepIdx}`).innerHTML=`<div class="fb ${q}"><div class="fb-lbl ${q}">${fLbl}</div>${impactBlock}<div class="fb-text">${opt.fb}</div></div>${nextBtn}`;
   renderHcpMeters(1,dt,dw);
@@ -298,11 +304,16 @@ function renderHcpReview(){
       const pills=impactPills([["Poverenje",a.dt],["Spremnost",a.dw]]);
       html+=`<div class="review-attempt ${cls}">${multi?`<div class="review-attempt-num">Pokušaj ${j+1}</div>`:''}<div class="review-attempt-hdr"><span class="review-icon ${cls}">${ok?'✓':'✗'}</span><span class="review-opt">«${opt.x}»</span></div>${pills}<div class="review-fb">${opt.fb}</div></div>`;
     });
-    if(i===0&&attempts.length){
+    if(attempts.length){
       const last=attempts[attempts.length-1];
       if(last.quality!=="good"){
-        const correctOpt=step.o.find(o=>o.ok);
-        if(correctOpt)html+=`<div class="review-correct"><strong>Tačan koren je bio:</strong> «${correctOpt.x}»</div>`;
+        if(i===0){
+          const correctOpt=step.o.find(o=>o.ok);
+          if(correctOpt)html+=`<div class="review-correct"><strong>Tačan koren je bio:</strong> «${correctOpt.x}»</div>`;
+        }else{
+          const goodOpt=step.o.find(o=>o.q==="good");
+          if(goodOpt)html+=`<div class="review-correct"><strong>Bolji odgovor bi bio:</strong> «${goodOpt.x}»<div style="margin-top:8px;color:var(--ink-soft);font-size:13px;font-weight:400">${goodOpt.fb}</div></div>`;
+        }
       }
     }
     html+='</div>';
@@ -618,5 +629,12 @@ function returnToPersonaPick(){
    ════════════════════════════════════════════════════ */
 window.addEventListener("DOMContentLoaded",()=>{
   loadState();
+  // mode: URL param wins over localStorage; fallback default 'retry'
+  try{
+    const urlMode=new URLSearchParams(location.search).get("mode");
+    if(urlMode==="sim"||urlMode==="retry")S.mode=urlMode;
+    else if(!S.mode)S.mode="retry";
+  }catch(e){if(!S.mode)S.mode="retry"}
+  saveState();
   showScreen(S.screen||"role")
 });

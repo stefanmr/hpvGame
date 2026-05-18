@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="sr-Latn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin · Od nedoumice do odluke</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300..700;9..144,1,300..600&family=DM+Sans:opsz,wght@9..40,300..700&display=swap&subset=latin-ext" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  .login-form{max-width:380px;margin:60px auto;background:var(--paper);padding:30px;border-left:3px solid var(--coral);box-shadow:var(--shadow)}
+  .login-form h2{font-family:'Fraunces',serif;font-weight:500;font-size:24px;margin-bottom:18px;color:var(--teal-deep)}
+  .login-form input{display:block;width:100%;padding:10px 12px;margin-bottom:14px;border:1px solid var(--border);font-family:inherit;font-size:15px;background:var(--paper);box-sizing:border-box}
+  .login-form button{width:100%;padding:12px;background:var(--teal);color:var(--paper);border:none;font-family:inherit;font-size:15px;letter-spacing:.04em;cursor:pointer}
+  .login-form button:hover{background:var(--teal-deep)}
+  .err{color:var(--err);background:var(--err-bg);padding:8px 12px;font-size:14px;margin:8px 0}
+  .admin-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+  .admin-top-email{font-size:13px;color:var(--ink-muted)}
+  .admin-top button{padding:8px 14px;background:transparent;color:var(--ink-soft);border:1px solid var(--border);font-family:inherit;font-size:13px;cursor:pointer}
+  .admin-top button:hover{background:var(--cream-warm)}
+  .hub-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;margin:18px 0 36px}
+  .hub-card{display:block;background:var(--paper);border:1px solid var(--border);padding:24px 22px;text-decoration:none;color:inherit;transition:all .2s ease;position:relative;overflow:hidden}
+  .hub-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--coral);transform:scaleY(0);transform-origin:top;transition:transform .25s ease}
+  .hub-card:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+  .hub-card:hover::before{transform:scaleY(1)}
+  .hub-card-icon{font-size:24px;margin-bottom:10px;color:var(--coral)}
+  .hub-card-title{font-family:'Fraunces',serif;font-size:22px;color:var(--teal-deep);font-weight:500;margin-bottom:6px;line-height:1.2}
+  .hub-card-desc{font-size:13.5px;color:var(--ink-soft);line-height:1.5}
+  .hub-card-cta{margin-top:14px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--coral);font-weight:600}
+
+  .settings{background:var(--paper);border:1px solid var(--border);border-left:3px solid var(--teal);padding:26px 28px}
+  .settings h3{font-family:'Fraunces',serif;font-size:22px;color:var(--teal-deep);margin-bottom:6px;font-weight:500}
+  .settings p.lead{font-size:14.5px;color:var(--ink-soft);margin-bottom:20px;line-height:1.55}
+  .settings-row{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}
+  @media(max-width:680px){.settings-row{grid-template-columns:1fr}}
+  .settings label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);margin-bottom:4px;font-weight:500}
+  .settings input[type="text"],.settings input[type="url"]{display:block;width:100%;padding:10px 12px;border:1px solid var(--border);font-family:inherit;font-size:14px;background:var(--paper);box-sizing:border-box;color:var(--ink)}
+  .mode-options{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+  .mode-opt{flex:1;min-width:140px;padding:10px 14px;border:1px solid var(--border);background:var(--paper);cursor:pointer;transition:all .15s ease;text-align:left}
+  .mode-opt:hover{background:var(--cream-warm)}
+  .mode-opt.sel{border-color:var(--teal);background:var(--cream-warm)}
+  .mode-opt-name{font-size:14px;font-weight:600;color:var(--ink);margin-bottom:2px}
+  .mode-opt.sel .mode-opt-name{color:var(--teal-deep)}
+  .mode-opt-desc{font-size:11.5px;color:var(--ink-muted);line-height:1.4}
+  .hint{font-size:12px;color:var(--ink-muted);margin-top:4px;line-height:1.45;font-style:italic}
+  .url-box{background:var(--cream-warm);padding:14px 16px;border-left:3px solid var(--teal);margin-top:18px;word-break:break-all;font-family:'DM Sans',monospace;font-size:13px;line-height:1.5;color:var(--ink-soft)}
+  .url-box strong{color:var(--teal);font-weight:600}
+  .qr-row{display:grid;grid-template-columns:1fr auto;gap:24px;margin-top:18px;align-items:start}
+  @media(max-width:680px){.qr-row{grid-template-columns:1fr}}
+  .actions{display:flex;gap:10px;flex-wrap:wrap}
+  .actions button{padding:10px 14px;font-family:inherit;font-size:14px;border:none;cursor:pointer;color:var(--paper);background:var(--teal)}
+  .actions button:hover{background:var(--teal-deep)}
+  .actions button.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--border)}
+  .actions button.ghost:hover{background:var(--cream-warm)}
+  .qr-preview{padding:16px;background:var(--paper);border:1px solid var(--border);text-align:center;min-width:200px}
+  .qr-preview canvas{display:block;margin:0 auto;max-width:200px;height:auto}
+  .qr-preview-hint{font-size:11px;color:var(--ink-muted);margin-top:8px;letter-spacing:.05em}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+<header class="brand">
+  <div class="brand-mark"><a href="index.html" style="color:inherit;text-decoration:none">Od nedoumice <span>do odluke</span></a></div>
+  <div class="brand-meta">admin · v1</div>
+</header>
+
+<section id="login-view">
+  <form class="login-form" onsubmit="event.preventDefault();window._doLogin()">
+    <h2>Prijava</h2>
+    <input id="email" type="email" placeholder="Email" autocomplete="email" required>
+    <input id="password" type="password" placeholder="Lozinka" autocomplete="current-password" required>
+    <button type="submit">Uloguj se</button>
+    <div id="login-err" class="err" style="display:none;margin-top:14px"></div>
+  </form>
+</section>
+
+<section id="admin-view" style="display:none">
+  <div class="admin-top">
+    <div>
+      <div class="eyebrow">Facilitator dashboard</div>
+      <h2 class="title" style="font-size:32px;margin-bottom:0">Admin <em>panel</em></h2>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="admin-top-email" id="userEmail"></span>
+      <button onclick="window._logout()">Odjava</button>
+    </div>
+  </div>
+
+  <div class="hub-grid">
+    <a class="hub-card" href="stats.html">
+      <div class="hub-card-icon">📊</div>
+      <div class="hub-card-title">Statistika</div>
+      <div class="hub-card-desc">Ishodi po scenariju, drop-off, najnoviji događaji. Filter po radionici i datumu.</div>
+      <div class="hub-card-cta">Otvori →</div>
+    </a>
+    <a class="hub-card" href="qr.html">
+      <div class="hub-card-icon">🔲</div>
+      <div class="hub-card-title">QR generator</div>
+      <div class="hub-card-desc">Brzi QR za radionicu — samo workshop ID. Štampaj ili preuzmi PNG.</div>
+      <div class="hub-card-cta">Otvori →</div>
+    </a>
+    <a class="hub-card" href="index.html" target="_blank">
+      <div class="hub-card-icon">🎮</div>
+      <div class="hub-card-title">Direktan link na igru</div>
+      <div class="hub-card-desc">Otvori igru u novom tabu — bez parametara, samo da brzo proveriš da li radi.</div>
+      <div class="hub-card-cta">Otvori →</div>
+    </a>
+  </div>
+
+  <div class="settings">
+    <h3>Podešavanja radionice</h3>
+    <p class="lead">Generiše prilagođen URL koji uključuje workshop ID i režim igre. Polaznici skeniraju QR i automatski dobijaju te postavke.</p>
+
+    <div class="settings-row">
+      <div>
+        <label for="cfg-base">Bazni URL</label>
+        <input id="cfg-base" type="url" placeholder="https://stefanmr.github.io/hpvGame/">
+        <div class="hint">Adresa gde je igra hostovana. Auto-detektuje se.</div>
+      </div>
+      <div>
+        <label for="cfg-wid">Workshop ID</label>
+        <input id="cfg-wid" type="text" placeholder="novi-sad-2026-05" autocomplete="off">
+        <div class="hint">Slug, npr. <code>grad-godina-mesec</code>. Opciono — može i bez.</div>
+      </div>
+    </div>
+
+    <label>Režim igre</label>
+    <div class="mode-options">
+      <div class="mode-opt sel" data-mode="retry" onclick="window._setMode('retry')">
+        <div class="mode-opt-name">Retry (default)</div>
+        <div class="mode-opt-desc">Pogrešan odgovor smanjuje skor, ali igrač mora da pogodi tačan da nastavi. Pedagoški — uvodne sesije.</div>
+      </div>
+      <div class="mode-opt" data-mode="sim" onclick="window._setMode('sim')">
+        <div class="mode-opt-name">Simulacija</div>
+        <div class="mode-opt-desc">Bilo koji izbor zaključa korak i scenario ide dalje sa posledicama. Realističan — završne / ispitne sesije.</div>
+      </div>
+    </div>
+
+    <div class="url-box"><strong>URL:</strong> <span id="genUrl">—</span></div>
+
+    <div class="qr-row">
+      <div>
+        <div class="actions">
+          <button onclick="window._copyUrl()">Kopiraj URL</button>
+          <button onclick="window._openQr()">Otvori u QR generatoru</button>
+          <button class="ghost" onclick="window._testGame()">Testiraj sada</button>
+        </div>
+        <div class="hint" style="margin-top:14px">QR preview ispod je za brzu vizualnu proveru — za štampu koristi <a href="qr.html" style="color:var(--coral)">QR generator</a> (može da ucita URL kao Bazni URL).</div>
+      </div>
+      <div class="qr-preview">
+        <canvas id="qr-canvas"></canvas>
+        <div class="qr-preview-hint">Preview</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cite" style="margin-top:28px">
+    <strong>Napomena za istraživanje:</strong> Režim sesije se beleži u analitici (<code>payload.mode</code>) zajedno sa workshop ID-jem, tako da se u stats.html mogu razdvojiti retry vs simulacija sesije.
+  </div>
+</section>
+
+</div>
+
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import QRCode from "https://esm.sh/qrcode@1.5.4";
+
+const SUPA_URL = "https://xahvkqtmguflkzixxysz.supabase.co";
+const SUPA_KEY = "sb_publishable_XtWSITf0P0a1LvJAFBs_qw_5qTKjAfS";
+const supa = createClient(SUPA_URL, SUPA_KEY);
+
+let currentMode = "retry";
+
+window._doLogin = async () => {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+  const errEl = document.getElementById("login-err");
+  errEl.style.display = "none";
+  const { error } = await supa.auth.signInWithPassword({ email, password });
+  if (error) {
+    errEl.textContent = error.message;
+    errEl.style.display = "block";
+    return;
+  }
+  await showAdmin();
+};
+
+window._logout = async () => {
+  await supa.auth.signOut();
+  location.reload();
+};
+
+window._setMode = (m) => {
+  currentMode = m;
+  document.querySelectorAll(".mode-opt").forEach(el => {
+    el.classList.toggle("sel", el.dataset.mode === m);
+  });
+  updateUrl();
+};
+
+function detectBase() {
+  const u = new URL(location.href);
+  u.pathname = u.pathname.replace(/admin\.html$|qr\.html$|stats\.html$/, "");
+  u.search = "";
+  u.hash = "";
+  let s = u.toString();
+  if (!s.endsWith("/")) s += "/";
+  return s;
+}
+
+function buildUrl() {
+  const base = (document.getElementById("cfg-base").value || "").trim();
+  const wid = (document.getElementById("cfg-wid").value || "").trim().toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
+  const params = new URLSearchParams();
+  if (wid) params.set("w", wid);
+  if (currentMode && currentMode !== "retry") params.set("mode", currentMode);
+  const qs = params.toString();
+  return base + (qs ? "?" + qs : "");
+}
+
+function updateUrl() {
+  const url = buildUrl();
+  document.getElementById("genUrl").textContent = url || "—";
+  renderQr(url);
+}
+
+async function renderQr(url) {
+  const canvas = document.getElementById("qr-canvas");
+  if (!url) { canvas.width = 0; return; }
+  try {
+    await QRCode.toCanvas(canvas, url, {
+      margin: 2,
+      width: 220,
+      color: { dark: "#143432", light: "#fbf7ef" }
+    });
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+window._copyUrl = async () => {
+  const url = buildUrl();
+  if (!url) return;
+  try {
+    await navigator.clipboard.writeText(url);
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = "Kopirano ✓";
+    setTimeout(() => btn.textContent = orig, 1200);
+  } catch (e) {
+    alert("Ne mogu da kopiram. URL je: " + url);
+  }
+};
+
+window._openQr = () => {
+  const url = buildUrl();
+  if (!url) return;
+  const qrUrl = "qr.html#prefill=" + encodeURIComponent(url);
+  window.open(qrUrl, "_blank");
+};
+
+window._testGame = () => {
+  const url = buildUrl();
+  if (!url) return;
+  window.open(url, "_blank");
+};
+
+async function showAdmin() {
+  document.getElementById("login-view").style.display = "none";
+  document.getElementById("admin-view").style.display = "block";
+  const { data: { session } } = await supa.auth.getSession();
+  if (session?.user?.email) {
+    document.getElementById("userEmail").textContent = session.user.email;
+  }
+  document.getElementById("cfg-base").value = detectBase();
+  document.getElementById("cfg-base").addEventListener("input", updateUrl);
+  document.getElementById("cfg-wid").addEventListener("input", updateUrl);
+  updateUrl();
+}
+
+// Auto-skip login if session exists
+(async () => {
+  const { data: { session } } = await supa.auth.getSession();
+  if (session) await showAdmin();
+})();
+</script>
+
+</body>
+</html>

@@ -73,9 +73,17 @@ function _gameVersion(){
   }catch(e){return null}
 }
 
+function _gameMode(){
+  try{
+    const m=new URLSearchParams(location.search).get("mode");
+    return (m==="sim"||m==="retry")?m:"retry"
+  }catch(e){return "retry"}
+}
+
 const ANALYTICS_SID=_analyticsSessionId();
 const ANALYTICS_WID=_analyticsWorkshopId();
 const ANALYTICS_VER=_gameVersion();
+const ANALYTICS_MODE=_gameMode();
 const ANALYTICS_T0=Date.now();
 
 function _isConfigured(){
@@ -100,7 +108,7 @@ function track(eventType,payload){
         session_id:ANALYTICS_SID,
         workshop_id:ANALYTICS_WID,
         event_type:eventType,
-        payload:Object.assign({t_ms:Date.now()-ANALYTICS_T0,ver:ANALYTICS_VER},payload||{})
+        payload:Object.assign({t_ms:Date.now()-ANALYTICS_T0,ver:ANALYTICS_VER,mode:ANALYTICS_MODE},payload||{})
       }),
       keepalive:true
     }).catch(()=>{})
