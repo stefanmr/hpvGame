@@ -14,6 +14,12 @@ hook:"Pre dve godine joj je tetka umrla. Sada pedijatrica preporučuje vakcinu z
 intro:["Imaš 38 godina. Lana ima 14.","Pre dve godine ti je preminula tetka — zbog propuštenog skrininga za rak grlića materice. Lekari su stalno odlagali pregled, a devet meseci kasnije je više nije bilo.","Od tada ne veruješ sistemu koji nastupa sa stavom: <em>«Mi znamo najbolje»</em>.","Lanina pedijatrica je preporučila HPV vakcinu. Nije te ništa pitala — samo je presekla: <em>Treba</em>.","Potražila si drugo mišljenje. Sediš u čekaonici novog pedijatra. Stomak ti se grči."],
 start:{anks:75,sas:5,otv:15,dec:20},
 startWhy:"Posle tetkinog gubitka i osećaja da je sistem nije saslušao, ulazi sa visokom anksioznošću i defanzivnim oklopom — saslušanost je gotovo nula jer očekuje 'znamo najbolje' pristup.",
+startWhyBy:{
+  anks:"Tetka je umrla od posledica raka grlića — strah da se istorija ponovi je dominantan.",
+  sas:"Pet ordinacija pre ove, ni u jednoj je niko nije pitao šta misli.",
+  otv:"Skrštene ruke i defanzivni oklop — očekuje pristup 'znamo najbolje'.",
+  dec:"Nije apriori protiv, ali emocionalni teret blokira bilo kakvu odluku unapred."
+},
 doc:{i:"MJ",l:"Dr Marija Janković, pedijatrica"},
 scenes:[
 {title:"Ulazak",
@@ -72,6 +78,12 @@ hook:"Sin sa alergijskom astmom. Vakcinu za ćerku gleda kroz prizmu jednog slo�
 intro:["Imaš 35 godina i dvoje dece: Milu od 13 i Lazara od 7 godina.","Lazar boluje od alergijske astme. Već sedam godina vodiš lavovsku borbu da otkriješ šta mu sve smeta i izaziva napade.","Postala si ekspert za deklaracije i sastojke. <em>Bez aditiva, bez veštačkih boja, bez kompromisa.</em>","Sada je na redu HPV vakcina za Milu. Čula si reči: aluminijum, adjuvansi.","Ne želiš da uneseš u telo svoje zdrave ćerke nešto što ne razumeš do detalja."],
 start:{anks:80,sas:10,otv:20,dec:25},
 startWhy:"Sedam godina borbe za Lazarovu astmu napravilo je hiperoprez prema svemu što ulazi u telo deteta — anksioznost dominira, ali nije apriori protiv; samo zahteva da bude do detalja shvaćena.",
+startWhyBy:{
+  anks:"Sedam godina borbe za Lazarovu astmu — hiperoprez prema svemu što ulazi u telo deteta.",
+  sas:"Lekari pominju brojke i statistike, retko priznaju roditeljski strah kao validan.",
+  otv:"Spremna da sluša, ali samo ako sagovornik prizna njene rezerve kao opravdane.",
+  dec:"Nije anti-vakser; aluminijum i adjuvansi zahtevaju objašnjenje do najsitnijeg detalja."
+},
 doc:{i:"VL",l:"Dr Vesna Lazarević, lekarka opšte medicine"},
 scenes:[
 {title:"Ulazak",
@@ -130,6 +142,12 @@ hook:"Tradicionalna porodica. Vakcina protiv «polno prenosive bolesti» u 12. g
 intro:["Imaš 40 godina. Iva ima 12, a Stefan 15 godina.","Tvoja porodica duboko drži do tradicionalnih vrednosti. Vera, zajednica i jasno postavljene moralne granice su vam temelj.","Stefan je tvoj prvenac — sa njim si već pokrenula prve, ozbiljne razgovore o zrelosti i odnosima.","Ali Iva je još uvek devojčica koja raste. Kada je pedijatar pomenuo <em>«HPV vakcinu»</em>, ti si čula samo jedno: vakcina protiv polno prenosive bolesti.","Iva ima samo 12 godina. Smatraš da to u njenom uzrastu nikako ne bi trebalo da bude tema."],
 start:{anks:60,sas:5,otv:20,dec:20},
 startWhy:"Principijelan stav joj daje osećaj kontrole — zato je anksioznost samo umerena, a otvorenost niska; očekuje 'medicinski pritisak' i zato je saslušanost gotovo nula.",
+startWhyBy:{
+  anks:"Strah nije od nuspojava, već od poruke koju vakcina šalje 12-godišnjakinji.",
+  sas:"Lekari obično pominju samo medicinske aspekte — moralne i porodične preskaču.",
+  otv:"Otvorena za razgovor ako se njene vrednosti uvaže umesto da budu zaobiđene.",
+  dec:"Principijelan stav 'PPB tema je prerana za uzrast' — pomeranje zahteva ozbiljan razgovor."
+},
 doc:{i:"AP",l:"Dr Aleksandar Petrović, pedijatar"},
 scenes:[
 {title:"Ulazak",
@@ -188,6 +206,12 @@ hook:"Doktorant filozofije nauke. Skeptičan prema autoritetu — ali pošten pr
 intro:["Imaš 39 godina i doktorant si u oblasti filozofije nauke. Tvoja ćerka Olja ima 11 godina.","Provodiš dane analizirajući kako se stvara naučno znanje i ko zapravo ima moć da odlučuje šta je «naučna činjenica».","Ne, ti nisi nekakav zatucani antivakser. Pročitao si brdo literature — i to ne samo zvanične brošure iz čekaonica.","Oljanina pedijatrica snažno preporučuje HPV vakcinu. Tvoja supruga se potpuno slaže sa njom.","Ali ti želiš duboko da promisliš. Želiš debatu. Želiš da budeš maksimalno pošten prema samom naučnom procesu."],
 start:{anks:40,sas:15,otv:35,dec:35},
 startWhy:"Došao je u dijalog, ne u sukob — zato je strah najniži među svim likovima, a otvorenost iznad proseka; pošten je prema procesu i očekuje istu poštenost od lekarke.",
+startWhyBy:{
+  anks:"Ne strah, već intelektualna rezerva — došao je da promisli, ne da odbije.",
+  sas:"Većina lekara izbegava metodološku raspravu i sklanja se iza 'preporuke SZO'.",
+  otv:"Spreman za debatu pod uslovom poštene argumentacije i priznanja slabosti.",
+  dec:"Realno informisan, nije apriori protiv — odluku donosi samo ako proces bude pošten."
+},
 doc:{i:"MS",l:"Dr Milica Stević, infektološkinja"},
 scenes:[
 {title:"Ulazak",

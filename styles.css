@@ -223,6 +223,17 @@ h2.title{font-family:'Fraunces',serif;font-weight:500;font-size:clamp(28px,4.5vw
 .intro-state strong{color:var(--teal)}
 .intro-state-why{margin-top:8px;font-size:13.5px;color:var(--ink-soft);line-height:1.5}
 .intro-state-why em{color:var(--ink);font-family:'Fraunces',serif;font-style:italic}
+.state-breakdown{list-style:none;padding:0;margin:10px 0 12px;display:grid;grid-template-columns:auto auto 1fr;gap:6px 14px;align-items:baseline}
+.state-breakdown li{display:contents;font-size:13.5px;line-height:1.5}
+.state-breakdown .sb-name{color:var(--teal-deep);font-weight:500;white-space:nowrap}
+.state-breakdown .sb-val{color:var(--teal);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+.state-breakdown .sb-why{font-family:'Fraunces',serif;font-style:italic;color:var(--ink)}
+@media(max-width:560px){
+  .state-breakdown{grid-template-columns:1fr;gap:4px}
+  .state-breakdown li{display:block;margin-bottom:6px}
+  .state-breakdown .sb-val{margin-left:6px;text-align:left}
+  .state-breakdown .sb-why{display:block;margin-top:2px}
+}
 /* HCP start-of-scenario note */
 .start-note{background:var(--cream-warm);padding:14px 18px;margin-top:14px;margin-bottom:4px;border-left:3px solid var(--coral);font-size:13.5px;color:var(--ink-soft);line-height:1.55}
 .start-note-lbl{font-family:'Fraunces',serif;font-style:italic;color:var(--coral);font-size:12px;letter-spacing:.04em;text-transform:uppercase;margin-bottom:4px;font-weight:500}

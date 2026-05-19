@@ -458,8 +458,16 @@ function renderPersonaIntro(){
   const p=PERSONAS[S.personaIdx];
   document.getElementById("pSceneHint").textContent="Pre razgovora";
   renderPPips();
-  const why=p.startWhy?`<div class="intro-state-why"><em>${p.startWhy}</em></div>`:"";
-  document.getElementById("pCard").innerHTML=`<div class="intro-card fade-in"><div class="intro-eb">Lik ${String(S.personaIdx+1).padStart(2,'0')}</div><h2 class="intro-name">${p.name}</h2><div class="intro-tag">«${p.tag}»</div><div class="intro-text">${p.intro.map(par=>'<p>'+par+'</p>').join("")}</div><div class="intro-state"><strong>Tvoje stanje sad:</strong> Anksioznost ${p.start.anks} · Saslušanost ${p.start.sas} · Otvorenost ${p.start.otv} · Prihvatanje vakcinacije ${p.start.dec!=null?p.start.dec:20}${why}<br><small style="color:var(--ink-muted)">Tvoji izbori menjaju ove mere. Cilj nije «pobeda» — već iskreni odgovor onome šta lik oseća.</small></div><div class="next-wrap"><button class="btn btn-coral" onclick="startPScene(0)">Ulazak u ordinaciju <span class="arrow">→</span></button></div></div>`
+  const dec=p.start.dec!=null?p.start.dec:20;
+  let stateBlock;
+  if(p.startWhyBy){
+    const row=(name,val,why)=>`<li><span class="sb-name">${name}</span><span class="sb-val">${val}</span><span class="sb-why">${why}</span></li>`;
+    stateBlock=`<strong>Tvoje stanje sad:</strong><ul class="state-breakdown">${row("Anksioznost",p.start.anks,p.startWhyBy.anks)}${row("Saslušanost",p.start.sas,p.startWhyBy.sas)}${row("Otvorenost",p.start.otv,p.startWhyBy.otv)}${row("Prihvatanje vakcinacije",dec,p.startWhyBy.dec)}</ul>`;
+  }else{
+    const why=p.startWhy?`<div class="intro-state-why"><em>${p.startWhy}</em></div>`:"";
+    stateBlock=`<strong>Tvoje stanje sad:</strong> Anksioznost ${p.start.anks} · Saslušanost ${p.start.sas} · Otvorenost ${p.start.otv} · Prihvatanje vakcinacije ${dec}${why}<br>`;
+  }
+  document.getElementById("pCard").innerHTML=`<div class="intro-card fade-in"><div class="intro-eb">Lik ${String(S.personaIdx+1).padStart(2,'0')}</div><h2 class="intro-name">${p.name}</h2><div class="intro-tag">«${p.tag}»</div><div class="intro-text">${p.intro.map(par=>'<p>'+par+'</p>').join("")}</div><div class="intro-state">${stateBlock}<small style="color:var(--ink-muted)">Tvoji izbori menjaju ove mere. Cilj nije «pobeda» — već iskreni odgovor onome šta lik oseća.</small></div><div class="next-wrap"><button class="btn btn-coral" onclick="startPScene(0)">Ulazak u ordinaciju <span class="arrow">→</span></button></div></div>`
 }
 
 function scrollToCard(){

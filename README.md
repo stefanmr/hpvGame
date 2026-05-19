@@ -1,4 +1,5 @@
 # Od nedoumice do odluke
+claude --resume 8feada7b-a7de-4dcd-a942-21a6a476b9e0
 
 Interaktivna edukativna igra za zdravstvene radnike — vežbanje empatičke komunikacije o HPV vakcinaciji. Dve perspektive: lekar koji vodi razgovor i roditelj koji okleva.
 

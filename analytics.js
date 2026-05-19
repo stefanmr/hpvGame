@@ -132,3 +132,21 @@ window.addEventListener("DOMContentLoaded",()=>{
     returning:localStorage.getItem("ondk_v2")?1:0
   })
 });
+
+// Trajanje sesije: šalje se pri zatvaranju taba/prozora ili navigaciji dalje.
+// pagehide je pouzdaniji od beforeunload na iOS Safari; sa keepalive:true u track()
+// fetch završi i nakon što se page ugasi.
+function _lastScreen(){
+  try{return typeof S!=="undefined"&&S&&S.screen?S.screen:null}
+  catch(e){return null}
+}
+let _SESSION_END_SENT=false;
+window.addEventListener("pagehide",()=>{
+  if(_SESSION_END_SENT)return;
+  _SESSION_END_SENT=true;
+  track("session_end",{
+    duration_ms:Date.now()-ANALYTICS_T0,
+    last_screen:_lastScreen(),
+    path:location.pathname
+  })
+});

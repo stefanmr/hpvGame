@@ -14,6 +14,10 @@
   .qr-form label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted);margin:14px 0 4px;font-weight:500}
   .qr-form input{display:block;width:100%;padding:10px 12px;border:1px solid var(--border);font-family:inherit;font-size:15px;background:var(--paper);box-sizing:border-box;color:var(--ink)}
   .qr-form .hint{font-size:12px;color:var(--ink-muted);margin-top:4px;line-height:1.4;font-style:italic}
+  .mode-pick{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .mode-opt{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border:1px solid var(--border);background:var(--paper);cursor:pointer;font-size:14px;color:var(--ink-soft);user-select:none}
+  .mode-opt input{margin:0;accent-color:var(--teal)}
+  .mode-opt:has(input:checked){border-color:var(--teal);background:var(--cream-warm);color:var(--ink)}
   .url-box{background:var(--cream-warm);padding:14px 16px;border-left:3px solid var(--teal);margin-top:18px;word-break:break-all;font-family:'DM Sans',monospace;font-size:13px;line-height:1.45;color:var(--ink-soft)}
   .url-box strong{color:var(--teal);font-weight:600}
   .actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
@@ -56,6 +60,15 @@
     <label for="wid">Workshop ID</label>
     <input id="wid" type="text" placeholder="novi-sad-2026-05" autocomplete="off">
     <div class="hint">Slug za URL. Predlog: <code>grad-godina-mesec</code>, sve malim slovima, bez razmaka. Npr. <code>novi-sad-2026-05</code>, <code>kme-beograd-2026-juni</code>.</div>
+
+    <div id="modeSection">
+      <label>Mode igre</label>
+      <div class="mode-pick">
+        <label class="mode-opt"><input type="radio" name="mode" value="retry" checked> Retry</label>
+        <label class="mode-opt"><input type="radio" name="mode" value="sim"> Simulacija</label>
+      </div>
+      <div class="hint"><strong>Retry</strong> — igrač može ponovo da bira posle loših izbora (default). <strong>Simulacija</strong> — jedan pokušaj po koraku, posledice ostaju (za napredne radionice).</div>
+    </div>
 
     <label for="title">Naslov za štampu (opciono)</label>
     <input id="title" type="text" placeholder="KME · Novi Sad · maj 2026">
@@ -115,10 +128,17 @@ try {
     baseEl.value = prefilled;
     const notice = document.createElement("div");
     notice.style.cssText = "background:var(--cream-warm);padding:12px 14px;border-left:3px solid var(--coral);font-size:13px;color:var(--ink-soft);margin:10px 0 0;line-height:1.5";
-    notice.innerHTML = '<strong style="color:var(--coral)">URL prosleđen iz admin panela.</strong> Workshop ID i mode su već uključeni u baznom URL-u — workshop polje ispod ostaje prazno, pa se ne dodaje ponovo.';
+    notice.innerHTML = '<strong style="color:var(--coral)">URL prosleđen iz admin panela.</strong> Workshop ID i mode su već uključeni u baznom URL-u — workshop i mode polja ispod ostaju neaktivna, pa se ne dodaju ponovo.';
     baseEl.parentNode.insertBefore(notice, baseEl);
+    const modeSection = document.getElementById("modeSection");
+    if (modeSection) modeSection.style.display = "none";
   }
 } catch (e) {}
+
+function getMode() {
+  const el = document.querySelector('input[name="mode"]:checked');
+  return el ? el.value : "retry";
+}
 
 function buildUrl() {
   const base = baseEl.value.trim();
@@ -131,8 +151,12 @@ function buildUrl() {
     .replace(/[^a-z0-9-]+/g, "-")
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
-  if (!wid) return baseClean + "/index.html";
-  return `${baseClean}/index.html?w=${wid}`;
+  const mode = getMode();
+  const params = [];
+  if (wid) params.push("w=" + wid);
+  if (mode === "sim") params.push("mode=sim");
+  if (!params.length) return baseClean + "/index.html";
+  return `${baseClean}/index.html?${params.join("&")}`;
 }
 
 async function render() {
@@ -194,6 +218,7 @@ function flash(msg) {
 baseEl.addEventListener("input", render);
 widEl.addEventListener("input", render);
 titleEl.addEventListener("input", render);
+document.querySelectorAll('input[name="mode"]').forEach(el => el.addEventListener("change", render));
 render();
 </script>
 </body>
