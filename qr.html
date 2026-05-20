@@ -68,6 +68,13 @@
         <label class="mode-opt"><input type="radio" name="mode" value="sim"> Simulacija</label>
       </div>
       <div class="hint"><strong>Retry</strong> — igrač može ponovo da bira posle loših izbora (default). <strong>Simulacija</strong> — jedan pokušaj po koraku, posledice ostaju (za napredne radionice).</div>
+
+      <label style="margin-top:10px">Jezik igre</label>
+      <div class="mode-pick">
+        <label class="mode-opt"><input type="radio" name="lang" value="sr" checked> SR</label>
+        <label class="mode-opt"><input type="radio" name="lang" value="en"> EN</label>
+      </div>
+      <div class="hint"><strong>SR</strong> — srpska latinica (default). <strong>EN</strong> — engleski prevod (za međunarodne polaznike).</div>
     </div>
 
     <label for="title">Naslov za štampu (opciono)</label>
@@ -128,7 +135,7 @@ try {
     baseEl.value = prefilled;
     const notice = document.createElement("div");
     notice.style.cssText = "background:var(--cream-warm);padding:12px 14px;border-left:3px solid var(--coral);font-size:13px;color:var(--ink-soft);margin:10px 0 0;line-height:1.5";
-    notice.innerHTML = '<strong style="color:var(--coral)">URL prosleđen iz admin panela.</strong> Workshop ID i mode su već uključeni u baznom URL-u — workshop i mode polja ispod ostaju neaktivna, pa se ne dodaju ponovo.';
+    notice.innerHTML = '<strong style="color:var(--coral)">URL prosleđen iz admin panela.</strong> Workshop ID, mode i jezik su već uključeni u baznom URL-u — polja ispod ostaju neaktivna, pa se ne dodaju ponovo.';
     baseEl.parentNode.insertBefore(notice, baseEl);
     const modeSection = document.getElementById("modeSection");
     if (modeSection) modeSection.style.display = "none";
@@ -138,6 +145,11 @@ try {
 function getMode() {
   const el = document.querySelector('input[name="mode"]:checked');
   return el ? el.value : "retry";
+}
+
+function getLang() {
+  const el = document.querySelector('input[name="lang"]:checked');
+  return el ? el.value : "sr";
 }
 
 function buildUrl() {
@@ -152,9 +164,11 @@ function buildUrl() {
     .replace(/-+/g, "-")
     .replace(/^-|-$/g, "");
   const mode = getMode();
+  const lang = getLang();
   const params = [];
   if (wid) params.push("w=" + wid);
   if (mode === "sim") params.push("mode=sim");
+  if (lang === "en") params.push("lang=en");
   if (!params.length) return baseClean + "/index.html";
   return `${baseClean}/index.html?${params.join("&")}`;
 }
@@ -219,6 +233,7 @@ baseEl.addEventListener("input", render);
 widEl.addEventListener("input", render);
 titleEl.addEventListener("input", render);
 document.querySelectorAll('input[name="mode"]').forEach(el => el.addEventListener("change", render));
+document.querySelectorAll('input[name="lang"]').forEach(el => el.addEventListener("change", render));
 render();
 </script>
 </body>

@@ -139,6 +139,18 @@
       </div>
     </div>
 
+    <label style="margin-top:18px">Jezik igre</label>
+    <div class="mode-options">
+      <div class="mode-opt sel" data-lang="sr" onclick="window._setLang('sr')">
+        <div class="mode-opt-name">SR (default)</div>
+        <div class="mode-opt-desc">Srpski (latinica). Originalni sadržaj.</div>
+      </div>
+      <div class="mode-opt" data-lang="en" onclick="window._setLang('en')">
+        <div class="mode-opt-name">EN</div>
+        <div class="mode-opt-desc">Engleski prevod. Za međunarodne polaznike ili poređenje publika.</div>
+      </div>
+    </div>
+
     <div class="url-box"><strong>URL:</strong> <span id="genUrl">—</span></div>
 
     <div class="qr-row">
@@ -158,7 +170,7 @@
   </div>
 
   <div class="cite" style="margin-top:28px">
-    <strong>Napomena za istraživanje:</strong> Režim sesije se beleži u analitici (<code>payload.mode</code>) zajedno sa workshop ID-jem, tako da se u stats.html mogu razdvojiti retry vs simulacija sesije.
+    <strong>Napomena za istraživanje:</strong> Režim i jezik sesije se beleže u analitici (<code>payload.mode</code>, <code>payload.lang</code>) zajedno sa workshop ID-jem, tako da se u stats.html mogu filtrirati i razdvojiti retry vs simulacija sesije i SR vs EN publika.
   </div>
 </section>
 
@@ -173,6 +185,7 @@ const SUPA_KEY = "sb_publishable_XtWSITf0P0a1LvJAFBs_qw_5qTKjAfS";
 const supa = createClient(SUPA_URL, SUPA_KEY);
 
 let currentMode = "retry";
+let currentLang = "sr";
 
 window._doLogin = async () => {
   const email = document.getElementById("email").value.trim();
@@ -195,8 +208,16 @@ window._logout = async () => {
 
 window._setMode = (m) => {
   currentMode = m;
-  document.querySelectorAll(".mode-opt").forEach(el => {
+  document.querySelectorAll(".mode-opt[data-mode]").forEach(el => {
     el.classList.toggle("sel", el.dataset.mode === m);
+  });
+  updateUrl();
+};
+
+window._setLang = (l) => {
+  currentLang = l;
+  document.querySelectorAll(".mode-opt[data-lang]").forEach(el => {
+    el.classList.toggle("sel", el.dataset.lang === l);
   });
   updateUrl();
 };
@@ -217,6 +238,7 @@ function buildUrl() {
   const params = new URLSearchParams();
   if (wid) params.set("w", wid);
   if (currentMode && currentMode !== "retry") params.set("mode", currentMode);
+  if (currentLang && currentLang !== "sr") params.set("lang", currentLang);
   const qs = params.toString();
   return base + (qs ? "?" + qs : "");
 }

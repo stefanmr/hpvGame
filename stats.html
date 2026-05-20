@@ -37,6 +37,12 @@
   .mode-pill.active{background:var(--teal);color:var(--paper);border-color:var(--teal)}
   .mode-pill .count{font-size:11px;opacity:.75;margin-left:6px;font-variant-numeric:tabular-nums}
   .mode-pill.active .count{opacity:.85}
+  /* Lang pills u stats.html (override styles.css .lang-pill koji je manji za header) */
+  .mode-pills .lang-pill{padding:6px 12px;font-size:13px;letter-spacing:0;font-weight:400;border:1px solid var(--border);background:var(--paper);color:var(--ink-soft);font-family:inherit;cursor:pointer;user-select:none}
+  .mode-pills .lang-pill:hover{background:var(--cream-warm);color:var(--ink-soft)}
+  .mode-pills .lang-pill.active{background:var(--teal);color:var(--paper);border-color:var(--teal)}
+  .mode-pills .lang-pill .count{font-size:11px;opacity:.75;margin-left:6px;font-variant-numeric:tabular-nums}
+  .mode-pills .lang-pill.active .count{opacity:.85}
   .csv-btn{font-size:12px;padding:4px 10px;background:transparent;color:var(--ink-muted);border:1px solid var(--border);cursor:pointer;font-family:inherit;letter-spacing:.02em;margin:6px 0 4px}
   .csv-btn:hover{background:var(--cream-warm);color:var(--ink);border-color:var(--teal)}
   .csv-btn:disabled{opacity:.4;cursor:not-allowed}
@@ -96,6 +102,16 @@
       <button class="mode-pill" data-mode="retry" type="button">Retry <span class="count" data-count="retry"></span></button>
       <button class="mode-pill" data-mode="sim" type="button">Simulacija <span class="count" data-count="sim"></span></button>
       <button class="mode-pill" data-mode="unknown" type="button">Nepoznato <span class="count" data-count="unknown"></span></button>
+    </div>
+  </div>
+
+  <div class="filters-row2" style="border-top:none;padding-top:0;margin-top:-4px">
+    <span class="lbl">Jezik:</span>
+    <div class="mode-pills" id="langPills">
+      <button class="lang-pill active" data-lang="all" type="button">Svi <span class="count" data-count-lang="all"></span></button>
+      <button class="lang-pill" data-lang="sr" type="button">SR <span class="count" data-count-lang="sr"></span></button>
+      <button class="lang-pill" data-lang="en" type="button">EN <span class="count" data-count-lang="en"></span></button>
+      <button class="lang-pill" data-lang="unknown" type="button">Nepoznato <span class="count" data-count-lang="unknown"></span></button>
     </div>
   </div>
 
@@ -168,6 +184,7 @@ let LIVE_TIMER = null;
 let TITLES = { hcp: {}, parent: {} };
 let _ALL_EVENTS = [];
 let MODE_FILTER = "all";
+let LANG_FILTER = "all";
 
 window._doLogin = async () => {
   const email = document.getElementById("email").value.trim();
@@ -218,11 +235,18 @@ function eventMode(e) {
   return "unknown";
 }
 
+function eventLang(e) {
+  const l = e && e.payload && e.payload.lang;
+  if (l === "sr" || l === "en") return l;
+  return "unknown";
+}
+
 function applyFilters() {
-  const events = MODE_FILTER === "all"
-    ? _ALL_EVENTS
-    : _ALL_EVENTS.filter(e => eventMode(e) === MODE_FILTER);
+  let events = _ALL_EVENTS;
+  if (MODE_FILTER !== "all") events = events.filter(e => eventMode(e) === MODE_FILTER);
+  if (LANG_FILTER !== "all") events = events.filter(e => eventLang(e) === LANG_FILTER);
   renderModePills();
+  renderLangPills();
   renderAll(events);
 }
 
@@ -237,8 +261,25 @@ function renderModePills() {
   });
 }
 
+function renderLangPills() {
+  const counts = { all: _ALL_EVENTS.length, sr: 0, en: 0, unknown: 0 };
+  for (const e of _ALL_EVENTS) counts[eventLang(e)]++;
+  document.querySelectorAll("#langPills .lang-pill .count").forEach(s => {
+    const k = s.dataset.countLang;
+    s.textContent = counts[k] ? `(${counts[k]})` : "";
+  });
+  document.querySelectorAll("#langPills .lang-pill").forEach(b => {
+    b.classList.toggle("active", b.dataset.lang === LANG_FILTER);
+  });
+}
+
 window._setMode = (m) => {
   MODE_FILTER = m;
+  applyFilters();
+};
+
+window._setLang = (l) => {
+  LANG_FILTER = l;
   applyFilters();
 };
 
@@ -281,9 +322,12 @@ function renderAll(events) {
   renderRecent(events);
   const time = new Date().toLocaleTimeString("sr-Latn");
   const total = _ALL_EVENTS.length;
-  document.getElementById("meta").textContent = MODE_FILTER === "all"
+  const filterDescParts = [];
+  if (MODE_FILTER !== "all") filterDescParts.push("mode=" + MODE_FILTER);
+  if (LANG_FILTER !== "all") filterDescParts.push("lang=" + LANG_FILTER);
+  document.getElementById("meta").textContent = filterDescParts.length === 0
     ? `Učitano ${events.length} događaja u ${time}.`
-    : `Prikazano ${events.length} od ${total} događaja (filter: mode=${MODE_FILTER}) u ${time}.`;
+    : `Prikazano ${events.length} od ${total} događaja (filter: ${filterDescParts.join(", ")}) u ${time}.`;
 }
 
 function pctCell(count, total) {
@@ -754,8 +798,11 @@ document.addEventListener("click", e => {
 // Filters re-trigger load
 document.getElementById("filter-workshop").addEventListener("change", loadData);
 document.getElementById("filter-from").addEventListener("change", loadData);
-document.querySelectorAll(".mode-pill").forEach(b => {
+document.querySelectorAll("#modePills .mode-pill").forEach(b => {
   b.addEventListener("click", () => window._setMode(b.dataset.mode));
+});
+document.querySelectorAll("#langPills .lang-pill").forEach(b => {
+  b.addEventListener("click", () => window._setLang(b.dataset.lang));
 });
 document.getElementById("opt-dist-scenario").addEventListener("change", applyFilters);
 document.getElementById("opt-dist-bymode").addEventListener("change", applyFilters);
