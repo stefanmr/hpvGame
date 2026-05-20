@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="game-version" content="3.0">
-<title>Od nedoumice do odluke — interaktivna vežba</title>
+<title data-i18n-title="title.page">Od nedoumice do odluke — interaktivna vežba</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,ital,wght@9..144,0,300..700;9..144,1,300..600&family=DM+Sans:opsz,wght@9..40,300..700&display=swap&subset=latin-ext" rel="stylesheet">
@@ -15,76 +15,80 @@
 <div class="container">
 
 <header class="brand">
-  <div class="brand-mark" onclick="goHome()">Od nedoumice <span>do odluke</span></div>
-  <div class="brand-meta">interaktivna vežba · v3</div>
+  <div class="brand-mark" onclick="goHome()"><span data-i18n="brand.mark1">Od nedoumice</span> <span data-i18n="brand.mark2">do odluke</span></div>
+  <div class="brand-meta" data-i18n="brand.meta">interaktivna vežba · v3</div>
+  <div class="lang-toggle">
+    <button class="lang-pill active" data-lang="sr" onclick="setLang('sr')">SR</button>
+    <button class="lang-pill" data-lang="en" onclick="setLang('en')">EN</button>
+  </div>
 </header>
 
 <div id="crumb" class="crumb hidden"></div>
 
 <!-- ─────────────── SCREEN: ROLE ─────────────── -->
 <section id="s-role" class="fade-in">
-  <div class="eyebrow">Dve perspektive · jedna tema</div>
-  <h1 class="title">U <em>čijim</em><br>cipelama danas?</h1>
-  <p class="lead">Vakcinacija nije monolog. Dve igre, dva pogleda. Jedna kroz oči lekara koji pokušava da pomogne, druga kroz oči roditelja koji okleva. Razumevanje obe strane je preduslov dobre prakse.</p>
+  <div class="eyebrow" data-i18n="role.eyebrow">Dve perspektive · jedna tema</div>
+  <h1 class="title" data-i18n="role.title">U <em>čijim</em><br>cipelama danas?</h1>
+  <p class="lead" data-i18n="role.lead">Vakcinacija nije monolog. Dve igre, dva pogleda. Jedna kroz oči lekara koji pokušava da pomogne, druga kroz oči roditelja koji okleva. Razumevanje obe strane je preduslov dobre prakse.</p>
 
   <div class="role-grid">
     <button class="role-card" onclick="enterGame('hcp')">
-      <div class="role-card-tag">Igra 01</div>
-      <div class="role-card-title">Razgovor sa<br><em>roditeljem</em></div>
-      <div class="role-card-desc">Vi ste lekar. Pred vama je roditelj sa konkretnom brigom. Prepoznajte koren stava, vežbajte empatičke odgovore. Osam scenarija na izbor.</div>
-      <div class="role-card-meta">~15 min · uloga: lekar</div>
-      <span class="role-card-cta">Krenite kao lekar <span class="arrow">→</span></span>
+      <div class="role-card-tag" data-i18n="role.hcp.tag">Igra 01</div>
+      <div class="role-card-title" data-i18n="role.hcp.title">Razgovor sa<br><em>roditeljem</em></div>
+      <div class="role-card-desc" data-i18n="role.hcp.desc">Vi ste lekar. Pred vama je roditelj sa konkretnom brigom. Prepoznajte koren stava, vežbajte empatičke odgovore. Osam scenarija na izbor.</div>
+      <div class="role-card-meta" data-i18n="role.hcp.meta">~15 min · uloga: lekar</div>
+      <span class="role-card-cta"><span data-i18n="role.hcp.cta">Krenite kao lekar</span> <span class="arrow">→</span></span>
     </button>
 
     <button class="role-card parent" onclick="enterGame('parent')">
-      <div class="role-card-tag">Igra 02</div>
-      <div class="role-card-title">U <em>cipelama</em><br>roditelja</div>
-      <div class="role-card-desc">Postanite roditelj koji okleva. Osetite šta znači biti ranjiv u ordinaciji. Birajte šta osećate, ne šta govorite. Osam likova na izbor.</div>
-      <div class="role-card-meta">~10 min · uloga: roditelj</div>
-      <span class="role-card-cta">Krenite kao roditelj <span class="arrow">→</span></span>
+      <div class="role-card-tag" data-i18n="role.parent.tag">Igra 02</div>
+      <div class="role-card-title" data-i18n="role.parent.title">U <em>cipelama</em><br>roditelja</div>
+      <div class="role-card-desc" data-i18n="role.parent.desc">Postanite roditelj koji okleva. Osetite šta znači biti ranjiv u ordinaciji. Birajte šta osećate, ne šta govorite. Osam likova na izbor.</div>
+      <div class="role-card-meta" data-i18n="role.parent.meta">~10 min · uloga: roditelj</div>
+      <span class="role-card-cta"><span data-i18n="role.parent.cta">Krenite kao roditelj</span> <span class="arrow">→</span></span>
     </button>
   </div>
 
-  <div class="note" style="margin-top:24px"><strong>Za grupe:</strong> Igrate samostalno ili u parovima. Predlog — 1–2 scenarija ili lika po sesiji, ostavite vremena za razgovor među sobom posle svakog. Sve odluke se čuvaju u brauzeru, možete pauzirati.</div>
+  <div class="note" style="margin-top:24px" data-i18n="role.groupNote"><strong>Za grupe:</strong> Igrate samostalno ili u parovima. Predlog — 1–2 scenarija ili lika po sesiji, ostavite vremena za razgovor među sobom posle svakog. Sve odluke se čuvaju u brauzeru, možete pauzirati.</div>
 
-  <div class="cite" style="margin-top:18px"><strong>Privatnost:</strong> Izbori se anonimno beleže radi istraživanja efikasnosti vežbe. Ne prikupljaju se imena, email-ovi ni IP adrese; nema praćenja izvan ovog alata. Ako ne želite da učestvujete u beleženju, kliknite <a onclick="setAnalyticsConsent(false)" style="cursor:pointer;color:var(--coral)">ovde</a>.</div>
+  <div class="cite" style="margin-top:18px" data-i18n="role.privacy"><strong>Privatnost:</strong> Izbori se anonimno beleže radi istraživanja efikasnosti vežbe. Ne prikupljaju se imena, email-ovi ni IP adrese; nema praćenja izvan ovog alata. Ako ne želite da učestvujete u beleženju, kliknite <a onclick="setAnalyticsConsent(false)" style="cursor:pointer;color:var(--coral)">ovde</a>.</div>
 </section>
 
 <!-- ─────────────── SCREEN: HCP PROFILE ─────────────── -->
 <section id="s-hcp-profile" class="hidden">
-  <div class="eyebrow">Igra 01 · Razgovor sa roditeljem</div>
-  <h2 class="title">Koja je vaša uloga<br>u zdravstvenom sistemu?</h2>
-  <p class="lead">Vaš profil daje kontekst razgovoru — kako vas roditelj doživljava i šta podrazumevate o porodici. Mehanika scenarija ostaje ista.</p>
+  <div class="eyebrow" data-i18n="hcpProfile.eyebrow">Igra 01 · Razgovor sa roditeljem</div>
+  <h2 class="title" data-i18n="hcpProfile.title">Koja je vaša uloga<br>u zdravstvenom sistemu?</h2>
+  <p class="lead" data-i18n="hcpProfile.lead">Vaš profil daje kontekst razgovoru — kako vas roditelj doživljava i šta podrazumevate o porodici. Mehanika scenarija ostaje ista.</p>
   <div class="profile-grid" id="hcpProfiles"></div>
 </section>
 
 <!-- ─────────────── SCREEN: HCP SCENARIO PICK ─────────────── -->
 <section id="s-hcp-pick" class="hidden">
-  <div class="eyebrow">Izaberite scenario</div>
-  <h2 class="title">Pred vama je roditelj.<br>Koji danas?</h2>
-  <p class="lead">Osam različitih briga, osam različitih psiholoških korenova. Posle završenog razgovora možete birati drugi — ili završiti sesiju.</p>
+  <div class="eyebrow" data-i18n="hcpPick.eyebrow">Izaberite scenario</div>
+  <h2 class="title" data-i18n="hcpPick.title">Pred vama je roditelj.<br>Koji danas?</h2>
+  <p class="lead" data-i18n="hcpPick.lead">Osam različitih briga, osam različitih psiholoških korenova. Posle završenog razgovora možete birati drugi — ili završiti sesiju.</p>
   <div class="profile-grid" id="hcpScenarios" style="grid-template-columns:repeat(auto-fit,minmax(280px,1fr))"></div>
   <div style="margin-top:20px;display:flex;gap:12px;flex-wrap:wrap">
-    <button class="btn btn-ghost" id="hcpFinish" onclick="showHcpSummary()" style="display:none">Završi sesiju i vidi rezultate</button>
+    <button class="btn btn-ghost" id="hcpFinish" onclick="showHcpSummary()" style="display:none" data-i18n="hcpPick.finishBtn">Završi sesiju i vidi rezultate</button>
   </div>
 </section>
 
 <!-- ─────────────── SCREEN: HCP GAME ─────────────── -->
 <section id="s-hcp-game" class="hidden">
   <div class="bar-wrap">
-    <div class="bar-info"><div class="bar-lbl" id="hcpScnLbl">Scenario · <strong>—</strong></div><div class="bar-step" id="hcpStepHint">Razgovor počinje...</div></div>
+    <div class="bar-info"><div class="bar-lbl" id="hcpScnLbl">Scenario · <strong>—</strong></div><div class="bar-step" id="hcpStepHint" data-i18n="hcpGame.stepHint">Razgovor počinje...</div></div>
     <div class="pips" id="hcpPips"></div>
   </div>
   <div class="game-layout">
     <aside class="game-side">
       <div class="side-meters">
-        <div class="side-meters-hd">Stanje roditelja</div>
+        <div class="side-meters-hd" data-i18n="hcpGame.metersHead">Stanje roditelja</div>
         <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Poverenje</span><span class="meter-v-val"><span id="trustVal">50</span><span class="delta" id="trustDel"></span></span></div>
+          <div class="meter-v-top"><span class="meter-v-lbl" data-i18n="hcpGame.meter.trust">Poverenje</span><span class="meter-v-val"><span id="trustVal">50</span><span class="delta" id="trustDel"></span></span></div>
           <div class="meter-v-track"><div class="fill trust" id="trustFill" style="width:50%"></div></div>
         </div>
         <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Prihvatanje vakcinacije</span><span class="meter-v-val"><span id="willVal">30</span><span class="delta" id="willDel"></span></span></div>
+          <div class="meter-v-top"><span class="meter-v-lbl" data-i18n="hcpGame.meter.will">Prihvatanje vakcinacije</span><span class="meter-v-val"><span id="willVal">30</span><span class="delta" id="willDel"></span></span></div>
           <div class="meter-v-track"><div class="fill will" id="willFill" style="width:30%"></div></div>
         </div>
       </div>
@@ -100,25 +104,25 @@
 
 <!-- ─────────────── SCREEN: PARENT PERSONA PICK ─────────────── -->
 <section id="s-parent-pick" class="hidden">
-  <div class="eyebrow">Igra 02 · U cipelama roditelja</div>
-  <h2 class="title">Ko ste vi <em>danas</em>?</h2>
-  <p class="lead">Niste lekar. Niste posmatrač. Postaćete neko ko sutra ide na pregled sa nedoumicom u stomaku.</p>
+  <div class="eyebrow" data-i18n="parentPick.eyebrow">Igra 02 · U cipelama roditelja</div>
+  <h2 class="title" data-i18n="parentPick.title">Ko ste vi <em>danas</em>?</h2>
+  <p class="lead" data-i18n="parentPick.lead1">Niste lekar. Niste posmatrač. Postaćete neko ko sutra ide na pregled sa nedoumicom u stomaku.</p>
 
   <div class="g2-intro">
-    <div class="g2-intro-h">Zašto baš ova igra?</div>
-    <p>Vežba je namenjena <strong>zdravstvenim radnicima</strong> — istim onima koji u Igri 01 vežbaju razgovor sa oklevajućim roditeljem. Ovde se uloge zamenjuju: postajete roditelj.</p>
-    <p>Cilj nije „pobeda" — nego da iz prve ruke osetite zašto razuman čovek može da okleva. Kroz priče četiri lika vidite kako:</p>
+    <div class="g2-intro-h" data-i18n="parentPick.g2.head">Zašto baš ova igra?</div>
+    <p data-i18n="parentPick.g2.p1">Vežba je namenjena <strong>zdravstvenim radnicima</strong> — istim onima koji u Igri 01 vežbaju razgovor sa oklevajućim roditeljem. Ovde se uloge zamenjuju: postajete roditelj.</p>
+    <p data-i18n="parentPick.g2.p2">Cilj nije „pobeda" — nego da iz prve ruke osetite zašto razuman čovek može da okleva. Kroz priče četiri lika vidite kako:</p>
     <ul class="g2-intro-list">
-      <li><strong>Anksioznost menja šta čujete od lekara</strong> — iste reči, drugačije značenje kad ste uplašeni.</li>
-      <li><strong>Mali znaci poštovanja menjaju spremnost za razgovor</strong> — naspram pritiska koji zatvara vrata.</li>
-      <li><strong>Iste činjenice deluju drugačije kroz različite emocionalne filtere</strong> — zašto „dokazi" ponekad ne ubeđuju.</li>
+      <li data-i18n="parentPick.g2.li1"><strong>Anksioznost menja šta čujete od lekara</strong> — iste reči, drugačije značenje kad ste uplašeni.</li>
+      <li data-i18n="parentPick.g2.li2"><strong>Mali znaci poštovanja menjaju spremnost za razgovor</strong> — naspram pritiska koji zatvara vrata.</li>
+      <li data-i18n="parentPick.g2.li3"><strong>Iste činjenice deluju drugačije kroz različite emocionalne filtere</strong> — zašto „dokazi" ponekad ne ubeđuju.</li>
     </ul>
-    <p class="g2-intro-meta">Svaki lik traje ~10 minuta. Možete ih probati u bilo kom redosledu — svaki je drugačiji slučaj.</p>
+    <p class="g2-intro-meta" data-i18n="parentPick.g2.meta">Svaki lik traje ~10 minuta. Možete ih probati u bilo kom redosledu — svaki je drugačiji slučaj.</p>
   </div>
 
-  <p class="lead">Birajte lik koji vam je najmanje sličan — najviše ćete naučiti.</p>
+  <p class="lead" data-i18n="parentPick.lead2">Birajte lik koji vam je najmanje sličan — najviše ćete naučiti.</p>
   <div class="persona-grid" id="personas"></div>
-  <div class="note"><strong>Napomena:</strong> Ovo nije test ispravnih odgovora. Svaki izbor je pokušaj da budete iskreni prema osećaju lika. Nema „pobeđujem" — postoji samo iskustvo.</div>
+  <div class="note" data-i18n="parentPick.note"><strong>Napomena:</strong> Ovo nije test ispravnih odgovora. Svaki izbor je pokušaj da budete iskreni prema osećaju lika. Nema „pobeđujem" — postoji samo iskustvo.</div>
 </section>
 
 <!-- ─────────────── SCREEN: PARENT GAME ─────────────── -->
@@ -130,23 +134,23 @@
   <div class="game-layout">
     <aside class="game-side">
       <div class="side-meters">
-        <div class="side-meters-hd">Tvoje stanje</div>
+        <div class="side-meters-hd" data-i18n="parentGame.metersHead">Tvoje stanje</div>
         <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Anksioznost</span><span class="meter-v-val"><span id="anksVal">50</span><span class="delta" id="anksDel"></span></span></div>
+          <div class="meter-v-top"><span class="meter-v-lbl" data-i18n="parentGame.meter.anks">Anksioznost</span><span class="meter-v-val"><span id="anksVal">50</span><span class="delta" id="anksDel"></span></span></div>
           <div class="meter-v-track"><div class="fill anks" id="anksFill" style="width:50%"></div></div>
         </div>
         <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Saslušanost</span><span class="meter-v-val"><span id="sasVal">0</span><span class="delta" id="sasDel"></span></span></div>
+          <div class="meter-v-top"><span class="meter-v-lbl" data-i18n="parentGame.meter.sas">Saslušanost</span><span class="meter-v-val"><span id="sasVal">0</span><span class="delta" id="sasDel"></span></span></div>
           <div class="meter-v-track"><div class="fill sas" id="sasFill" style="width:0%"></div></div>
         </div>
         <div class="meter-v">
-          <div class="meter-v-top"><span class="meter-v-lbl">Otvorenost</span><span class="meter-v-val"><span id="otvVal">15</span><span class="delta" id="otvDel"></span></span></div>
+          <div class="meter-v-top"><span class="meter-v-lbl" data-i18n="parentGame.meter.otv">Otvorenost</span><span class="meter-v-val"><span id="otvVal">15</span><span class="delta" id="otvDel"></span></span></div>
           <div class="meter-v-track"><div class="fill otv" id="otvFill" style="width:15%"></div></div>
         </div>
         <div class="meter-v meter-v-key">
-          <div class="meter-v-top"><span class="meter-v-lbl">Prihvatanje vakcinacije</span><span class="meter-v-val"><span id="decVal">20</span><span class="delta" id="decDel"></span></span></div>
+          <div class="meter-v-top"><span class="meter-v-lbl" data-i18n="parentGame.meter.dec">Prihvatanje vakcinacije</span><span class="meter-v-val"><span id="decVal">20</span><span class="delta" id="decDel"></span></span></div>
           <div class="meter-v-track"><div class="fill dec" id="decFill" style="width:20%"></div></div>
-          <div class="meter-v-anno"><span>protiv vakcinacije</span><span>za vakcinaciju</span></div>
+          <div class="meter-v-anno"><span data-i18n="parentGame.meter.against">protiv vakcinacije</span><span data-i18n="parentGame.meter.for">za vakcinaciju</span></div>
         </div>
       </div>
     </aside>
@@ -158,6 +162,7 @@
 
 </div>
 
+<script src="ui.js"></script>
 <script src="analytics.js"></script>
 <script src="scenarios.js"></script>
 <script src="personas.js"></script>

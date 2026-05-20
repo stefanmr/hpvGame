@@ -35,11 +35,17 @@ function setAnalyticsConsent(accepted){
       // da istraživač može da obriše vezane redove ako odluči
       track("consent_revoked",{});
       localStorage.setItem(ANALYTICS_CONSENT_KEY,"declined");
-      document.querySelectorAll(".cite").forEach(el=>{
-        if(el.textContent.includes("Privatnost")){
-          el.innerHTML='<strong>Privatnost:</strong> Odjavljeni ste iz beleženja. Vaši budući klikovi se ne šalju.'
+      // Update the privacy notice in place (matches role.privacy data-i18n)
+      const el=document.querySelector('[data-i18n="role.privacy"]');
+      if(el){
+        // Use t() ako je dostupno, else fallback SR tekst
+        if(typeof t==="function"){
+          el.setAttribute("data-i18n","role.privacy.declined");
+          el.innerHTML=t("role.privacy.declined");
+        }else{
+          el.innerHTML='<strong>Privatnost:</strong> Odjavljeni ste iz beleženja. Vaši budući klikovi se ne šalju.';
         }
-      })
+      }
     }
   }catch(e){}
 }
@@ -80,6 +86,17 @@ function _gameMode(){
   }catch(e){return "retry"}
 }
 
+function _gameLang(){
+  // URL ?lang= dominant — to je ono što je QR fiksirao za radionicu.
+  // Fallback na S.lang (kad je dostupan), pa na "sr".
+  try{
+    const l=new URLSearchParams(location.search).get("lang");
+    if(l==="sr"||l==="en")return l;
+    if(typeof S!=="undefined"&&S&&(S.lang==="sr"||S.lang==="en"))return S.lang;
+    return "sr"
+  }catch(e){return "sr"}
+}
+
 const ANALYTICS_SID=_analyticsSessionId();
 const ANALYTICS_WID=_analyticsWorkshopId();
 const ANALYTICS_VER=_gameVersion();
@@ -108,7 +125,7 @@ function track(eventType,payload){
         session_id:ANALYTICS_SID,
         workshop_id:ANALYTICS_WID,
         event_type:eventType,
-        payload:Object.assign({t_ms:Date.now()-ANALYTICS_T0,ver:ANALYTICS_VER,mode:ANALYTICS_MODE},payload||{})
+        payload:Object.assign({t_ms:Date.now()-ANALYTICS_T0,ver:ANALYTICS_VER,mode:ANALYTICS_MODE,lang:_gameLang()},payload||{})
       }),
       keepalive:true
     }).catch(()=>{})
